@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RL Trading Model Testing Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🤖 RL Trading Model Testing Platform</h1>
+            <p class="subtitle">Compare PPO vs CVaR-PPO vs Buy & Hold</p>
+            <div class="status" id="status">
+                <span class="status-indicator" id="statusIndicator">●</span>
+                <span id="statusText">Checking system...</span>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button class="tab-button active" onclick="switchTab('realtime')">
+                📊 Real-time Prediction
+            </button>
+            <button class="tab-button" onclick="switchTab('backtest')">
+                📈 Backtest
+            </button>
+            <button class="tab-button" onclick="switchTab('compare')">
+                ⚖️ Model Comparison
+            </button>
+            <button class="tab-button" onclick="switchTab('about')">
+                ℹ️ About
+            </button>
+        </nav>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Real-time Prediction Tab -->
+            <div id="realtime-tab" class="tab-pane active">
+                <div class="card">
+                    <h2>Real-time Prediction</h2>
+                    <p>Get current trading signals from each model separately</p>
+                    
+                    <div class="info-box">
+                        <h4>💡 How to Use:</h4>
+                        <ul>
+                            <li>Enter a stock symbol (e.g., SPY, AAPL, MSFT, GOOGL, TSLA)</li>
+                            <li>Click on each model button to get independent predictions</li>
+                            <li>Each prediction fetches fresh market data with timestamp</li>
+                            <li>Compare signals side-by-side to see different risk approaches</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rt-symbol">Stock Symbol:</label>
+                        <input type="text" id="rt-symbol" value="SPY" placeholder="e.g., SPY, AAPL, MSFT" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="getPrediction('ppo')" style="flex: 1; min-width: 200px;">
+                            📊 Get PPO Prediction
+                        </button>
+                        <button class="btn btn-primary" onclick="getPrediction('cvar')" style="flex: 1; min-width: 200px; background: #dc2626;">
+                            🛡️ Get CVaR-PPO Prediction
+                        </button>
+                    </div>
+                    
+                    <div id="rt-loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p id="rt-loading-text">Fetching data and generating predictions...</p>
+                    </div>
+                    
+                    <div id="rt-results" style="display: none;">
+                        <!-- PPO Results -->
+                        <div class="prediction-section" id="ppo-section" style="display: none;">
+                            <h3 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-bottom: 20px;">
+                                📊 PPO Model (Risk-Neutral)
+                            </h3>
+                            <div class="results-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                                <div class="metric-card">
+                                    <h4>Current Price</h4>
+                                    <div class="metric-value" id="ppo-price">-</div>
+                                    <div class="metric-label" id="ppo-symbol">-</div>
+                                    <div class="timestamp" id="ppo-timestamp" style="font-size: 0.75rem; color: #64748b; margin-top: 5px;">-</div>
+                                </div>
+                                
+                                <div class="metric-card">
+                                    <h4>Trading Signal</h4>
+                                    <div class="signal-badge" id="ppo-signal">-</div>
+                                    <div class="metric-value" style="font-size: 1.3rem;" id="ppo-action">-</div>
+                                </div>
+                                
+                                <div class="metric-card">
+                                    <h4>Signal Strength</h4>
+                                    <div class="metric-value" id="ppo-strength-text">-</div>
+                                    <div class="strength-bar">
+                                        <div class="strength-fill" id="ppo-strength"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="info-box" style="margin-top: 20px; background: #eff6ff;">
+                                <h4>PPO Analysis:</h4>
+                                <p id="ppo-analysis">-</p>
+                            </div>
+                        </div>
+                        
+                        <!-- CVaR-PPO Results -->
+                        <div class="prediction-section" id="cvar-section" style="display: none; margin-top: 30px;">
+                            <h3 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px; margin-bottom: 20px;">
+                                🛡️ CVaR-PPO Model (Risk-Sensitive)
+                            </h3>
+                            <div class="results-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                                <div class="metric-card">
+                                    <h4>Current Price</h4>
+                                    <div class="metric-value" id="cvar-price">-</div>
+                                    <div class="metric-label" id="cvar-symbol">-</div>
+                                    <div class="timestamp" id="cvar-timestamp" style="font-size: 0.75rem; color: #64748b; margin-top: 5px;">-</div>
+                                </div>
+                                
+                                <div class="metric-card">
+                                    <h4>Trading Signal</h4>
+                                    <div class="signal-badge" id="cvar-signal">-</div>
+                                    <div class="metric-value" style="font-size: 1.3rem;" id="cvar-action">-</div>
+                                </div>
+                                
+                                <div class="metric-card">
+                                    <h4>Signal Strength</h4>
+                                    <div class="metric-value" id="cvar-strength-text">-</div>
+                                    <div class="strength-bar">
+                                        <div class="strength-fill" id="cvar-strength"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="info-box" style="margin-top: 20px; background: #fef2f2;">
+                                <h4>CVaR-PPO Analysis:</h4>
+                                <p id="cvar-analysis">-</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Comparison (shown when both predictions exist) -->
+                        <div id="comparison-section" style="display: none; margin-top: 30px;">
+                            <h3 style="color: #059669; border-bottom: 2px solid #059669; padding-bottom: 10px; margin-bottom: 20px;">
+                                ⚖️ Model Comparison
+                            </h3>
+                            <div class="info-box" style="background: #f0fdf4;">
+                                <div id="comparison-content">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="rt-error" class="error-message" style="display: none;"></div>
+                    
+                    <div class="info-box" style="margin-top: 30px;">
+                        <h4>📖 Signal Guide:</h4>
+                        <ul>
+                            <li><strong>BUY:</strong> Action > 0.1 - Model recommends buying (bullish)</li>
+                            <li><strong>SELL:</strong> Action < -0.1 - Model recommends selling (bearish)</li>
+                            <li><strong>HOLD:</strong> -0.1 ≤ Action ≤ 0.1 - Model recommends no action (neutral)</li>
+                            <li><strong>Strength:</strong> Absolute value of action (0-100%) - Higher = more confident</li>
+                        </ul>
+                        <p style="margin-top: 10px;"><strong>Note:</strong> Each prediction fetches fresh market data. Prices update with each request.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backtest Tab -->
+            <div id="backtest-tab" class="tab-pane">
+                <div class="card">
+                    <h2>Backtest Models</h2>
+                    <p>Test model performance on historical data</p>
+                    
+                    <div class="info-box" style="background: #fef3c7; border-color: #f59e0b;">
+                        <h4>⚠️ Important Setup Guide:</h4>
+                        <ul>
+                            <li><strong>Date Range:</strong> Must be AFTER model training period (after Jan 2022)</li>
+                            <li><strong>Recommended Test Periods:</strong>
+                                <ul style="margin-left: 20px; margin-top: 5px;">
+                                    <li>Bull Market: 2023-01-01 to 2024-12-31</li>
+                                    <li>Bear Market: 2022-01-01 to 2022-12-31</li>
+                                    <li>Recent: 2024-01-01 to 2024-12-31</li>
+                                </ul>
+                            </li>
+                            <li><strong>Processing Time:</strong> Expect 30-60 seconds for 1-2 years of data</li>
+                            <li><strong>Symbol:</strong> Best results with SPY (S&P 500) - same as training data</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="bt-symbol">Stock Symbol:</label>
+                            <input type="text" id="bt-symbol" value="SPY" style="text-transform: uppercase;">
+                            <small style="color: #64748b;">SPY recommended (same as training)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bt-start">Start Date:</label>
+                            <input type="date" id="bt-start" value="2023-01-01">
+                            <small style="color: #64748b;">Must be after Jan 2022</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bt-end">End Date:</label>
+                            <input type="date" id="bt-end" value="2024-12-31">
+                            <small style="color: #64748b;">Recent data recommended</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bt-balance">Initial Balance ($):</label>
+                            <input type="number" id="bt-balance" value="10000" min="1000" step="1000">
+                            <small style="color: #64748b;">Default: $10,000</small>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="runBacktest()">
+                        🚀 Run Backtest
+                    </button>
+                    
+                    <div id="bt-loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Running backtest... This may take 30-60 seconds...</p>
+                        <p style="font-size: 0.9rem; color: #64748b;">Downloading data, calculating indicators, and evaluating models...</p>
+                    </div>
+                    
+                    <div id="bt-results" style="display: none;">
+                        <h3>Backtest Results</h3>
+                        <div id="bt-info" style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <strong>Test Period:</strong> <span id="bt-period">-</span> | 
+                            <strong>Days:</strong> <span id="bt-days">-</span> | 
+                            <strong>Symbol:</strong> <span id="bt-symbol-display">-</span>
+                        </div>
+                        
+                        <!-- Metrics Table -->
+                        <div class="table-container">
+                            <table class="metrics-table">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>PPO</th>
+                                        <th>CVaR-PPO</th>
+                                        <th>Buy & Hold</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bt-metrics-body">
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Charts -->
+                        <div class="chart-container">
+                            <h4>Portfolio Value Over Time</h4>
+                            <div id="bt-chart" style="width: 100%; height: 400px;"></div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h4>Performance Comparison</h4>
+                            <canvas id="bt-comparison-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div id="bt-error" class="error-message" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Model Comparison Tab -->
+            <div id="compare-tab" class="tab-pane">
+                <div class="card">
+                    <h2>Model Comparison</h2>
+                    <p>Compare training and test set performance</p>
+                    
+                    <button class="btn btn-primary" onclick="loadComparison()">
+                        Load Comparison
+                    </button>
+                    
+                    <div id="cmp-loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Loading comparison data...</p>
+                    </div>
+                    
+                    <div id="cmp-results" style="display: none;">
+                        <h3>Test Set Performance (SPY 2023-2024)</h3>
+                        
+                        <div class="comparison-grid">
+                            <!-- PPO Card -->
+                            <div class="comparison-card">
+                                <h4>PPO (Risk-Neutral)</h4>
+                                <div class="comparison-metrics">
+                                    <div class="metric-row">
+                                        <span>Total Return:</span>
+                                        <span class="value" id="cmp-ppo-return">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Sharpe Ratio:</span>
+                                        <span class="value" id="cmp-ppo-sharpe">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Max Drawdown:</span>
+                                        <span class="value" id="cmp-ppo-drawdown">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Win Rate:</span>
+                                        <span class="value" id="cmp-ppo-winrate">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Volatility:</span>
+                                        <span class="value" id="cmp-ppo-volatility">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- CVaR-PPO Card -->
+                            <div class="comparison-card">
+                                <h4>CVaR-PPO (Risk-Sensitive)</h4>
+                                <div class="comparison-metrics">
+                                    <div class="metric-row">
+                                        <span>Total Return:</span>
+                                        <span class="value" id="cmp-cvar-return">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Sharpe Ratio:</span>
+                                        <span class="value" id="cmp-cvar-sharpe">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Max Drawdown:</span>
+                                        <span class="value" id="cmp-cvar-drawdown">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Win Rate:</span>
+                                        <span class="value" id="cmp-cvar-winrate">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Volatility:</span>
+                                        <span class="value" id="cmp-cvar-volatility">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Buy & Hold Card -->
+                            <div class="comparison-card">
+                                <h4>Buy & Hold</h4>
+                                <div class="comparison-metrics">
+                                    <div class="metric-row">
+                                        <span>Total Return:</span>
+                                        <span class="value" id="cmp-bh-return">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Sharpe Ratio:</span>
+                                        <span class="value" id="cmp-bh-sharpe">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Max Drawdown:</span>
+                                        <span class="value" id="cmp-bh-drawdown">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Win Rate:</span>
+                                        <span class="value" id="cmp-bh-winrate">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Volatility:</span>
+                                        <span class="value" id="cmp-bh-volatility">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-box">
+                            <h4>Key Observations:</h4>
+                            <ul>
+                                <li><strong>PPO:</strong> Higher Sharpe ratio, better risk-adjusted returns</li>
+                                <li><strong>CVaR-PPO:</strong> Lower max drawdown, better risk management</li>
+                                <li><strong>Buy & Hold:</strong> Highest total return in bull market</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="cmp-radar-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div id="cmp-error" class="error-message" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- About Tab -->
+            <div id="about-tab" class="tab-pane">
+                <div class="card">
+                    <h2>About This Project</h2>
+                    
+                    <div class="about-section">
+                        <h3>🎯 Project Overview</h3>
+                        <p>
+                            This platform demonstrates the comparison between two reinforcement learning approaches
+                            for algorithmic trading: <strong>PPO (Risk-Neutral)</strong> and <strong>CVaR-PPO (Risk-Sensitive)</strong>.
+                        </p>
+                    </div>
+                    
+                    <div class="about-section">
+                        <h3>🤖 Models</h3>
+                        <div class="model-info">
+                            <h4>1. PPO (Proximal Policy Optimization)</h4>
+                            <ul>
+                                <li>Risk-neutral baseline approach</li>
+                                <li>Maximizes expected returns without explicit risk management</li>
+                                <li>Actor-Critic architecture with 256 hidden units</li>
+                                <li>Trained for 100 episodes on SPY data (2015-2022)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="model-info">
+                            <h4>2. CVaR-PPO (Conditional Value at Risk PPO)</h4>
+                            <ul>
+                                <li>Risk-sensitive approach with CVaR constraint</li>
+                                <li>Manages tail risk by penalizing worst 15% returns</li>
+                                <li>Adaptive lambda parameter (0.16 → 0.10)</li>
+                                <li>Focuses on downside protection and drawdown reduction</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="about-section">
+                        <h3>📊 Features</h3>
+                        <ul>
+                            <li><strong>Real-time Prediction:</strong> Get live trading signals from both models</li>
+                            <li><strong>Backtest:</strong> Test model performance on custom date ranges</li>
+                            <li><strong>Model Comparison:</strong> Compare metrics side-by-side</li>
+                            <li><strong>Technical Indicators:</strong> SMA, RSI, MACD, Bollinger Bands, ATR</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="about-section">
+                        <h3>📈 Training Data</h3>
+                        <ul>
+                            <li><strong>Symbol:</strong> SPY (S&P 500 ETF)</li>
+                            <li><strong>Period:</strong> 2015-01-01 to 2024-12-31 (10 years)</li>
+                            <li><strong>Split:</strong> 70% train / 15% validation / 15% test</li>
+                            <li><strong>Trading Days:</strong> 2,515 days total</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="about-section">
+                        <h3>⚙️ Configuration</h3>
+                        <ul>
+                            <li><strong>Initial Balance:</strong> $10,000</li>
+                            <li><strong>Transaction Cost:</strong> 0.1% per trade</li>
+                            <li><strong>Slippage:</strong> 0.05%</li>
+                            <li><strong>Learning Rate:</strong> PPO: 3e-4, CVaR: 1.5e-4</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="about-section">
+                        <h3>🔬 Technology Stack</h3>
+                        <ul>
+                            <li><strong>Backend:</strong> Python Flask</li>
+                            <li><strong>ML Framework:</strong> PyTorch</li>
+                            <li><strong>Data:</strong> yfinance, pandas, numpy</li>
+                            <li><strong>Technical Analysis:</strong> ta library</li>
+                            <li><strong>Visualization:</strong> Plotly, Chart.js</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="about-section">
+                        <h3>📝 Usage Notes</h3>
+                        <div class="warning-box">
+                            <p><strong>⚠️ Disclaimer:</strong> This is an educational project. Do not use these models
+                            for real trading without proper validation, risk management, and understanding of the limitations.</p>
+                        </div>
+                        <ul>
+                            <li>Models are trained on historical data and may not perform well in different market conditions</li>
+                            <li>Past performance does not guarantee future results</li>
+                            <li>Always implement proper risk management in live trading</li>
+                            <li>Consider transaction costs, slippage, and market impact</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>RL Trading Model Testing Platform | Built with PyTorch & Flask | Educational Purpose Only</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

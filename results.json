@@ -1,0 +1,99 @@
+{
+  "config": {
+    "SYMBOL": "SPY",
+    "START_DATE": "2015-01-01",
+    "END_DATE": "2024-12-31",
+    "INTERVAL": "1d",
+    "TRAIN_RATIO": 0.7,
+    "VAL_RATIO": 0.15,
+    "TEST_RATIO": 0.15,
+    "INITIAL_BALANCE": 10000,
+    "TRANSACTION_COST": 0.001,
+    "SLIPPAGE": 0.0005,
+    "PPO_LEARNING_RATE": 0.0003,
+    "PPO_GAMMA": 0.99,
+    "PPO_EPSILON": 0.2,
+    "PPO_EPOCHS": 10,
+    "PPO_BATCH_SIZE": 64,
+    "PPO_HIDDEN_DIM": 256,
+    "CVAR_ALPHA": 0.15,
+    "CVAR_LAMBDA": 0.16,
+    "CVAR_LAMBDA_DECAY": 0.996,
+    "CVAR_LAMBDA_MIN": 0.1,
+    "CVAR_LEARNING_RATE": 0.00015,
+    "CVAR_CLIP_RATIO": 0.22,
+    "CVAR_L2_LAMBDA": 1e-05,
+    "NUM_EPISODES": 100,
+    "CVAR_NUM_EPISODES": 100,
+    "UPDATE_INTERVAL": 512,
+    "DEVICE": "cuda"
+  },
+  "comparison": {
+    "Method": {
+      "0": "PPO",
+      "1": "CVaR-PPO",
+      "2": "Buy & Hold"
+    },
+    "Final Value": {
+      "0": 10861.764354841487,
+      "1": 10165.962841470826,
+      "2": 13352.847722093573
+    },
+    "Total Return": {
+      "0": 0.08617643548414872,
+      "1": 0.01659628414708259,
+      "2": 0.33528477220935726
+    },
+    "Sharpe Ratio": {
+      "0": 0.7926006727001873,
+      "1": 0.19938032883489737,
+      "2": 1.6688981655796606
+    },
+    "Max Drawdown": {
+      "0": -0.07693971571778711,
+      "1": -0.06563332650731128,
+      "2": -0.09974312066032906
+    },
+    "Win Rate": {
+      "0": 0.5434782608695652,
+      "1": 0.4945652173913043,
+      "2": 0.5799457994579946
+    },
+    "Volatility": {
+      "0": 0.07497761091130838,
+      "1": 0.06821071053228563,
+      "2": 0.12289830472317549
+    }
+  },
+  "ppo_metrics": {
+    "total_return": 0.08617643548414872,
+    "final_value": 10861.764354841487,
+    "sharpe_ratio": 0.7926006727001873,
+    "max_drawdown": -0.07693971571778711,
+    "win_rate": 0.5434782608695652,
+    "volatility": 0.07497761091130838,
+    "num_trades": 369
+  },
+  "cvar_metrics": {
+    "total_return": 0.01659628414708259,
+    "final_value": 10165.962841470826,
+    "sharpe_ratio": 0.19938032883489737,
+    "max_drawdown": -0.06563332650731128,
+    "win_rate": 0.4945652173913043,
+    "volatility": 0.06821071053228563,
+    "num_trades": 369
+  },
+  "bh_metrics": {
+    "total_return": 0.33528477220935726,
+    "final_value": 13352.847722093573,
+    "sharpe_ratio": 1.6688981655796606,
+    "max_drawdown": -0.09974312066032906,
+    "win_rate": 0.5799457994579946,
+    "volatility": 0.12289830472317549,
+    "num_trades": 370
+  },
+  "test_period": {
+    "start": "2023-07-13 00:00:00-04:00",
+    "end": "2024-12-30 00:00:00-05:00"
+  }
+}
