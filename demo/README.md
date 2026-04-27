@@ -1,53 +1,98 @@
-# RL Trading Model Testing Platform
+# Risk-Sensitive RL Trading Platform
 
-A comprehensive web application for testing and comparing PPO (Risk-Neutral) and CVaR-PPO (Risk-Sensitive) reinforcement learning models for algorithmic trading.
+A Django-based web application for testing and comparing reinforcement learning models for algorithmic trading.
 
-## 🎯 Features
+## Features
 
-- **Real-time Prediction**: Get live trading signals from both models for any stock symbol
-- **Backtesting**: Test model performance on custom date ranges with comprehensive metrics
-- **Model Comparison**: Side-by-side comparison of PPO, CVaR-PPO, and Buy & Hold strategies
-- **Interactive Visualizations**: Charts and graphs using Plotly and Chart.js
-- **Performance Metrics**: Total return, Sharpe ratio, max drawdown, win rate, volatility
+- **Real-time Trading Signals**: Get live predictions from PPO, CVaR-PPO, and Sortino-PPO models
+- **Backtesting**: Historical performance analysis with comprehensive metrics
+- **Model Comparison**: Side-by-side comparison of all models
+- **Risk-Sensitive RL**: Advanced algorithms that consider risk in trading decisions
 
-## 📋 Requirements
+## Models
 
-### Python Packages
+1. **PPO (Proximal Policy Optimization)**: Risk-neutral baseline
+2. **CVaR-PPO**: Incorporates Conditional Value at Risk for downside protection
+3. **Sortino-PPO**: Focuses on downside volatility using Sortino ratio
+
+## Installation
+
+1. Install dependencies:
 ```bash
-flask
-torch
-numpy
-pandas
-yfinance
-ta (technical analysis library)
-plotly
+pip install -r requirements.txt
 ```
 
-### Model Files
-- `ppo_model.pth` - Trained PPO model
-- `cvar_ppo_model.pth` - Trained CVaR-PPO model
-
-Place these files in the `/demo` directory.
-
-## 🚀 Installation
-
-1. **Clone or create the project directory:**
+2. Run database migrations:
 ```bash
-mkdir demo
-cd demo
+python manage.py migrate
 ```
 
-2. **Install required packages:**
+3. Start the development server:
 ```bash
-pip install flask torch numpy pandas yfinance ta plotly --break-system-packages
+python manage.py runserver
 ```
 
-3. **Copy your trained model files:**
-```bash
-# Copy ppo_model.pth and cvar_ppo_model.pth to the demo directory
-cp /path/to/ppo_model.pth .
-cp /path/to/cvar_ppo_model.pth .
+4. Open your browser and go to `http://127.0.0.1:8000`
+
+## API Endpoints
+
+- `GET /`: Main application interface
+- `POST /api/realtime_predict/`: Get real-time trading signals
+- `POST /api/backtest/`: Run historical backtesting
+- `GET /api/compare_models/`: Compare model performance
+- `GET /api/status/`: Check system status
+
+## Project Structure
+
 ```
+demo/
+├── trading_platform/          # Django project settings
+├── trading/                   # Main Django app
+│   ├── views.py              # API endpoints and logic
+│   ├── urls.py               # URL routing
+│   └── ...
+├── templates/                # HTML templates
+├── static/                   # Static files (CSS, JS)
+├── cvar_ppo_model.pth        # Trained CVaR-PPO model
+├── ppo_model.pth            # Trained PPO model
+├── sortino_ppo_model.pth    # Trained Sortino-PPO model
+├── norm_params.json         # Normalization parameters
+├── results.json             # Test results
+└── requirements.txt         # Python dependencies
+```
+
+## Usage
+
+### Real-time Prediction
+1. Select a stock symbol (e.g., SPY, AAPL)
+2. Choose a model (PPO, CVaR-PPO, or Sortino-PPO)
+3. Click "Get Prediction" to receive trading signals
+
+### Backtesting
+1. Enter stock symbol and date range
+2. Set initial balance
+3. Run backtest to see historical performance
+4. Compare all models visually
+
+### Model Comparison
+View comprehensive performance metrics and charts comparing all models.
+
+## Technical Details
+
+- **Framework**: Django 4.2 with Django REST Framework
+- **ML Framework**: PyTorch
+- **Data Source**: Yahoo Finance (yfinance)
+- **Technical Indicators**: TA-Lib
+- **Visualization**: Plotly.js
+- **Frontend**: Bootstrap 5, Custom CSS
+
+## Risk Disclaimer
+
+This platform is for educational and research purposes only. Trading involves substantial risk of loss and is not suitable for all investors. Past performance does not guarantee future results.
+
+## License
+
+This project is for educational use.
 
 4. **Verify directory structure:**
 ```

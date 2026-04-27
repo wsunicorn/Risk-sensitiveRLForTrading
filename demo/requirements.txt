@@ -1,7 +1,9 @@
-flask==3.1.2
+Django==4.2.30
+djangorestframework==3.17.1
 torch==2.8.0
 numpy>=1.26.0
 pandas>=2.2.0
 yfinance>=0.2.0
 ta>=0.11.0
 plotly>=5.18.0
+seaborn>=0.12.0

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sortino-PPO Model - Risk-Sensitive RL Trading Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://img.icons8.com/color/48/000000/trading.png" type="image/png">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #7c3aed;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #6d28d9);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .model-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .nav-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: #6d28d9;
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+        .content-section {
+            padding: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: none;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .prediction-result {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .signal-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .signal-buy {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+            border: 2px solid var(--success-color);
+        }
+
+        .signal-sell {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            border: 2px solid var(--danger-color);
+        }
+
+        .signal-hold {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+            border: 2px solid var(--warning-color);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 1rem;
+            background: var(--light-color);
+            border-radius: 10px;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .metric-label {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #6d28d9;
+            transform: translateY(-2px);
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid var(--border-color);
+            padding: 0.75rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(124, 58, 237, 0.25);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            background: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .sortino-highlight {
+            background: linear-gradient(135deg, #e9d5ff, #d8b4fe);
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 10px 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> Sortino-PPO Model</h1>
+            <p>Risk-Adjusted Reinforcement Learning with Sortino Ratio Focus</p>
+            <div class="model-badge">
+                <i class="fas fa-chart-line"></i> Sortino-PPO (Risk-Adjusted)
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="text-center py-3 bg-light">
+            <a href="/" class="nav-btn">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="/dashboard" class="nav-btn">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="/ppo" class="nav-btn" style="background: #2563eb;">
+                <i class="fas fa-brain"></i> PPO
+            </a>
+            <a href="/cvar" class="nav-btn" style="background: #059669;">
+                <i class="fas fa-shield-alt"></i> CVaR-PPO
+            </a>
+            <a href="/compare" class="nav-btn">
+                <i class="fas fa-balance-scale"></i> Compare Models
+            </a>
+        </div>
+
+        <!-- Content -->
+        <div class="content-section">
+            <!-- Model Description -->
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-info-circle"></i> Model Overview
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h6>Risk-Adjusted Sortino-PPO Approach</h6>
+                                    <p>
+                                        This model optimizes the Sortino ratio, focusing on downside volatility rather than total volatility.
+                                        It provides better risk-adjusted returns by penalizing only negative returns below a target threshold,
+                                        making it more suitable for risk-averse investors.
+                                    </p>
+                                    <div class="sortino-highlight">
+                                        <h6><i class="fas fa-target"></i> Sortino Ratio Focus:</h6>
+                                        <ul class="mb-0">
+                                            <li>Focuses on downside deviation only</li>
+                                            <li>Ignores upside volatility (good volatility)</li>
+                                            <li>Better risk-adjusted performance measure</li>
+                                            <li>Suitable for risk-averse strategies</li>
+                                        </ul>
+                                    </div>
+                                    <ul>
+                                        <li><strong>Optimization:</strong> Sortino ratio maximization</li>
+                                        <li><strong>Risk Measure:</strong> Downside deviation only</li>
+                                        <li><strong>Target:</strong> Risk-adjusted returns</li>
+                                        <li><strong>Advantage:</strong> Better than Sharpe for asymmetric returns</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div style="font-size: 4rem; color: var(--primary-color); margin-bottom: 1rem;">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="metric-value">Sortino-PPO</div>
+                                    <small class="text-muted">Risk-Adjusted</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Prediction -->
+            <div class="row mt-4">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-chart-line"></i> Real-time Prediction
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="symbol" class="form-label">
+                                            <i class="fas fa-search"></i> Stock Symbol
+                                        </label>
+                                        <input type="text" class="form-control" id="symbol" placeholder="e.g., SPY, AAPL, TSLA" value="SPY">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-chart-line"></i> Risk Adjustment
+                                        </label>
+                                        <div class="alert alert-primary">
+                                            <small>Sortino-PPO - Optimizes risk-adjusted returns</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mb-4">
+                                <button id="predictBtn" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-chart-line"></i> Get Sortino-PPO Prediction
+                                </button>
+                            </div>
+
+                            <!-- Loading -->
+                            <div id="loading" class="loading">
+                                <div class="spinner"></div>
+                                <p>Fetching market data and generating risk-adjusted prediction...</p>
+                            </div>
+
+                            <!-- Results -->
+                            <div id="results" style="display: none;">
+                                <div class="prediction-result">
+                                    <h4>Sortino-PPO Model Prediction</h4>
+                                    <div id="signalBadge" class="signal-badge mt-3"></div>
+                                    <div class="metric-grid mt-4">
+                                        <div class="metric-item">
+                                            <div class="metric-value" id="actionValue">-</div>
+                                            <div class="metric-label">Action</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-value" id="strengthValue">-</div>
+                                            <div class="metric-label">Strength (%)</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-value" id="priceValue">-</div>
+                                            <div class="metric-label">Current Price</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-value" id="timestampValue">-</div>
+                                            <div class="metric-label">Timestamp</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-lightbulb"></i> Risk-Adjusted Signal Guide:</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>BUY:</strong> Action > 0.1 - Favorable risk-adjusted opportunity</li>
+                                        <li><strong>SELL:</strong> Action < -0.1 - Unfavorable risk-adjusted position</li>
+                                        <li><strong>HOLD:</strong> -0.1 ≤ Action ≤ 0.1 - Neutral risk-adjusted stance</li>
+                                    </ul>
+                                    <small class="text-muted">Sortino optimization focuses on downside protection while maintaining upside potential</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backtest Section -->
+            <div class="row mt-4">
+                <div class="col-lg-10 mx-auto">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-chart-bar"></i> Backtest Sortino-PPO Model
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning">
+                                <h6><i class="fas fa-exclamation-triangle"></i> Important Setup Guide:</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Date Range:</strong> Must be AFTER model training period (after Jan 2022)</li>
+                                    <li><strong>Recommended:</strong> 2023-01-01 to 2024-12-31 (Mixed market conditions)</li>
+                                    <li><strong>Processing Time:</strong> Expect 30-60 seconds for 1-2 years of data</li>
+                                    <li><strong>Risk Focus:</strong> Sortino model balances risk and return effectively</li>
+                                </ul>
+                            </div>
+
+                            <form id="backtestForm">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="backtestSymbol" class="form-label">
+                                                <i class="fas fa-search"></i> Stock Symbol
+                                            </label>
+                                            <input type="text" class="form-control" id="backtestSymbol" value="SPY" readonly>
+                                            <small class="text-muted">SPY recommended (same as training)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="initialBalance" class="form-label">
+                                                <i class="fas fa-dollar-sign"></i> Initial Balance ($)
+                                            </label>
+                                            <input type="number" class="form-control" id="initialBalance" value="10000">
+                                            <small class="text-muted">Default: $10,000</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="startDate" class="form-label">
+                                                <i class="fas fa-calendar-alt"></i> Start Date
+                                            </label>
+                                            <input type="date" class="form-control" id="startDate" value="2023-01-01">
+                                            <small class="text-muted">Mixed market conditions recommended</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="endDate" class="form-label">
+                                                <i class="fas fa-calendar-alt"></i> End Date
+                                            </label>
+                                            <input type="date" class="form-control" id="endDate" value="2024-12-31">
+                                            <small class="text-muted">Test risk-adjusted performance</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-play"></i> Run Sortino-PPO Backtest
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Backtest Results -->
+                            <div id="backtestResults" style="display: none;">
+                                <hr>
+                                <h5 class="text-center mb-4">Backtest Results - Sortino-PPO Model</h5>
+                                <div id="backtestChart" style="height: 400px;"></div>
+                                <div class="row mt-4">
+                                    <div class="col-md-3">
+                                        <div class="metric-item">
+                                            <div class="metric-value" id="finalBalance">-</div>
+                                            <div class="metric-label">Final Balance</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-item">
+                                            <div class="metric-value" id="totalReturn">-</div>
+                                            <div class="metric-label">Total Return</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-item">
+                                            <div class="metric-value" id="sharpeRatio">-</div>
+                                            <div class="metric-label">Sharpe Ratio</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-item">
+                                            <div class="metric-value" id="sortinoRatio">-</div>
+                                            <div class="metric-label">Sortino Ratio</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-primary mt-3">
+                                    <h6><i class="fas fa-chart-line"></i> Risk-Adjusted Metrics:</h6>
+                                    <p class="mb-0">Sortino-PPO typically shows superior risk-adjusted returns, focusing on downside protection while maintaining upside potential.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Nền tảng Giao dịch RL Nhạy cảm với Rủi ro | Được xây dựng với PyTorch & Django | Chỉ dành cho Mục đích Giáo dục</p>
+            <p><small>© 2026 - Sortino-PPO Model: Risk-Adjusted Reinforcement Learning</small></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        // Get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Sortino-PPO Model specific functionality
+        document.getElementById('predictBtn').addEventListener('click', async function() {
+            const symbol = document.getElementById('symbol').value;
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+
+            loading.style.display = 'block';
+            results.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/realtime_predict/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        symbol: symbol,
+                        model: 'sortino'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayPrediction(data.sortino);
+                    results.style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error fetching prediction: ' + error.message);
+            }
+
+            loading.style.display = 'none';
+        });
+
+        function displayPrediction(prediction) {
+            const signalBadge = document.getElementById('signalBadge');
+            const actionValue = document.getElementById('actionValue');
+            const strengthValue = document.getElementById('strengthValue');
+
+            if (prediction && prediction.action !== undefined) {
+                actionValue.textContent = prediction.action.toFixed(4);
+                strengthValue.textContent = (Math.abs(prediction.action) * 100).toFixed(1) + '%';
+
+                // Determine signal
+                let signalClass, signalText;
+                if (prediction.action > 0.1) {
+                    signalClass = 'signal-buy';
+                    signalText = 'MUA';
+                } else if (prediction.action < -0.1) {
+                    signalClass = 'signal-sell';
+                    signalText = 'BÁN';
+                } else {
+                    signalClass = 'signal-hold';
+                    signalText = 'GIỮ';
+                }
+
+                signalBadge.className = `signal-badge ${signalClass}`;
+                signalBadge.textContent = `Tín hiệu ${signalText}`;
+            }
+
+            // Update price and timestamp
+            if (prediction && prediction.price !== undefined) {
+                document.getElementById('priceValue').textContent = '$' + prediction.price.toFixed(2);
+            }
+            if (prediction && prediction.timestamp) {
+                document.getElementById('timestampValue').textContent = new Date(prediction.timestamp).toLocaleString();
+            }
+        }
+
+        // Backtest form handling
+        document.getElementById('backtestForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = {
+                symbol: document.getElementById('backtestSymbol').value,
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value,
+                model: 'sortino',
+                initial_balance: parseFloat(document.getElementById('initialBalance').value)
+            };
+
+            try {
+                const response = await fetch('/api/backtest/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.results.sortino) {
+                    displayBacktestResults(data.results.sortino, data.data_info);
+                    document.getElementById('backtestResults').style.display = 'block';
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error running backtest: ' + error.message);
+            }
+        });
+
+        function displayBacktestResults(results, dataInfo) {
+            if (!results) return;
+
+            // Update metrics - results contains metrics and final_value
+            const metrics = results.metrics || {};
+            const finalValue = results.final_value || 0;
+
+            if (finalValue !== undefined) {
+                document.getElementById('finalBalance').textContent = '$' + finalValue.toFixed(2);
+            }
+            if (metrics.total_return !== undefined) {
+                document.getElementById('totalReturn').textContent = (metrics.total_return * 100).toFixed(2) + '%';
+            }
+            if (metrics.sharpe_ratio !== undefined) {
+                document.getElementById('sharpeRatio').textContent = metrics.sharpe_ratio.toFixed(2);
+            }
+            if (metrics.max_drawdown !== undefined) {
+                document.getElementById('maxDrawdown').textContent = (metrics.max_drawdown * 100).toFixed(2) + '%';
+            }
+
+            // Create chart - use history for portfolio values
+            if (results.history && results.history.length > 0) {
+                const portfolioValues = results.history.map(h => h.portfolio_value);
+                const chartData = [{
+                    x: results.history.map((_, i) => i),
+                    y: portfolioValues,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Danh mục Sortino-PPO',
+                    line: {color: '#7c3aed'}
+                }];
+
+                const layout = {
+                    title: `Kiểm tra Lại Mô hình Sortino-PPO: ${dataInfo.symbol} (${dataInfo.start_date} đến ${dataInfo.end_date})`,
+                    xaxis: {title: 'Ngày Giao dịch'},
+                    yaxis: {title: 'Giá trị Danh mục ($)'},
+                    showlegend: true
+                };
+
+                Plotly.newPlot('backtestChart', chartData, layout);
+            }
+        }
+    </script>
+</body>
+</html>
