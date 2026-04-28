@@ -313,7 +313,7 @@
         <!-- Header -->
         <div class="header">
             <h1><i class="fas fa-balance-scale"></i> So sánh Mô hình</h1>
-            <p>So sánh Chiến lược Giao dịch RL Trung lập vs Nhạy cảm với Rủi ro</p>
+            <p>So sánh chiến lược giao dịch RL trung lập rủi ro và nhạy cảm với rủi ro</p>
             <div class="model-badge">
                 <i class="fas fa-balance-scale"></i> PPO vs CVaR-PPO vs Sortino-PPO
             </div>
@@ -346,12 +346,12 @@
                     <div class="model-icon">
                         <i class="fas fa-brain"></i>
                     </div>
-                    <h4>PPO (Risk-Neutral)</h4>
-                    <p>Baseline approach maximizing expected returns without explicit risk management</p>
+                    <h4>PPO (Trung lập rủi ro)</h4>
+                    <p>Mô hình cơ sở tối đa hóa lợi nhuận kỳ vọng mà không có quản trị rủi ro rõ ràng.</p>
                     <div class="mt-3">
                         <small class="text-muted">
-                            <i class="fas fa-chart-line"></i> Focus: Expected Returns<br>
-                            <i class="fas fa-exclamation-triangle"></i> Risk: Standard Deviation
+                            <i class="fas fa-chart-line"></i> Trọng tâm: Lợi nhuận kỳ vọng<br>
+                            <i class="fas fa-exclamation-triangle"></i> Rủi ro: Độ lệch chuẩn
                         </small>
                     </div>
                 </div>
@@ -360,12 +360,12 @@
                     <div class="model-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
-                    <h4>CVaR-PPO (Risk-Sensitive)</h4>
-                    <p>Risk-sensitive approach with CVaR constraints managing tail risk</p>
+                    <h4>CVaR-PPO (Nhạy cảm với rủi ro)</h4>
+                    <p>Cách tiếp cận nhạy cảm với rủi ro, dùng ràng buộc CVaR để quản lý rủi ro đuôi.</p>
                     <div class="mt-3">
                         <small class="text-muted">
-                            <i class="fas fa-shield-alt"></i> Focus: Downside Protection<br>
-                            <i class="fas fa-chart-area"></i> Risk: Tail Risk (15%)
+                            <i class="fas fa-shield-alt"></i> Trọng tâm: Bảo vệ khi thị trường giảm<br>
+                            <i class="fas fa-chart-area"></i> Rủi ro: Rủi ro đuôi (15%)
                         </small>
                     </div>
                 </div>
@@ -374,12 +374,12 @@
                     <div class="model-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h4>Sortino-PPO (Risk-Adjusted)</h4>
-                    <p>Risk-adjusted approach focusing on downside volatility</p>
+                    <h4>Sortino-PPO (Điều chỉnh theo rủi ro)</h4>
+                    <p>Cách tiếp cận điều chỉnh theo rủi ro, tập trung vào biến động giảm giá.</p>
                     <div class="mt-3">
                         <small class="text-muted">
-                            <i class="fas fa-target"></i> Focus: Risk-Adjusted Returns<br>
-                            <i class="fas fa-balance-scale"></i> Risk: Downside Deviation
+                            <i class="fas fa-target"></i> Trọng tâm: Lợi nhuận điều chỉnh theo rủi ro<br>
+                            <i class="fas fa-balance-scale"></i> Rủi ro: Độ lệch giảm giá
                         </small>
                     </div>
                 </div>
@@ -396,10 +396,10 @@
                         </div>
                         <div class="card-body">
                             <div class="alert alert-info">
-                                <h6><i class="fas fa-info-circle"></i> Comparison Overview:</h6>
+                                <h6><i class="fas fa-info-circle"></i> Tổng quan so sánh:</h6>
                                 <p class="mb-0">
-                                    This analysis compares all three models side-by-side on the same market data.
-                                    Bạn sẽ thấy cách tiếp cận trung lập rủi ro so với nhạy cảm rủi ro hoạt động trong các điều kiện thị trường khác nhau.
+                                    Phân tích này so sánh cả ba mô hình trên cùng một bộ dữ liệu thị trường.
+                                    Bạn sẽ thấy các cách tiếp cận trung lập rủi ro, nhạy cảm với rủi ro và điều chỉnh theo rủi ro hoạt động khác nhau như thế nào.
                                 </p>
                             </div>
 
@@ -412,16 +412,16 @@
                                                 <i class="fas fa-search"></i> Mã Chứng khoán
                                             </label>
                                             <input type="text" class="form-control" id="comparisonSymbol" value="SPY" readonly>
-                                            <small class="text-muted">SPY (same as training data)</small>
+                                            <small class="text-muted">SPY trùng với dữ liệu huấn luyện</small>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label for="comparisonInitialBalance" class="form-label">
-                                                <i class="fas fa-dollar-sign"></i> Initial Balance ($)
+                                                <i class="fas fa-dollar-sign"></i> Vốn ban đầu ($)
                                             </label>
                                             <input type="number" class="form-control" id="comparisonInitialBalance" value="10000">
-                                            <small class="text-muted">Default: $10,000</small>
+                                            <small class="text-muted">Mặc định: $10,000</small>
                                         </div>
                                     </div>
                                 </div>
@@ -430,19 +430,19 @@
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label for="comparisonStartDate" class="form-label">
-                                                <i class="fas fa-calendar-alt"></i> Start Date
+                                                <i class="fas fa-calendar-alt"></i> Ngày bắt đầu
                                             </label>
                                             <input type="date" class="form-control" id="comparisonStartDate" value="2023-01-01">
-                                            <small class="text-muted">After training period (post Jan 2022)</small>
+                                            <small class="text-muted">Sau giai đoạn huấn luyện (sau tháng 01/2022)</small>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label for="comparisonEndDate" class="form-label">
-                                                <i class="fas fa-calendar-alt"></i> End Date
+                                                <i class="fas fa-calendar-alt"></i> Ngày kết thúc
                                             </label>
                                             <input type="date" class="form-control" id="comparisonEndDate" value="2024-12-31">
-                                            <small class="text-muted">Test period for comparison</small>
+                                            <small class="text-muted">Giai đoạn kiểm thử để so sánh</small>
                                         </div>
                                     </div>
                                 </div>
@@ -457,8 +457,8 @@
                             <!-- Loading -->
                             <div id="comparisonLoading" class="loading">
                                 <div class="spinner"></div>
-                                <p>Running comprehensive model comparison analysis...</p>
-                                <small class="text-muted">This may take 1-2 minutes as all models are backtested</small>
+                                <p>Đang chạy phân tích so sánh mô hình...</p>
+                                <small class="text-muted">Có thể mất 1-2 phút vì hệ thống kiểm tra lại tất cả mô hình</small>
                             </div>
                         </div>
                     </div>
@@ -483,19 +483,19 @@
                                 <div class="model-legend">
                                     <div class="legend-item">
                                         <div class="legend-color" style="background: #2563eb;"></div>
-                                        <span>PPO (Risk-Neutral)</span>
+                                        <span>PPO (Trung lập rủi ro)</span>
                                     </div>
                                     <div class="legend-item">
                                         <div class="legend-color" style="background: #059669;"></div>
-                                        <span>CVaR-PPO (Risk-Sensitive)</span>
+                                        <span>CVaR-PPO (Nhạy cảm với rủi ro)</span>
                                     </div>
                                     <div class="legend-item">
                                         <div class="legend-color" style="background: #7c3aed;"></div>
-                                        <span>Sortino-PPO (Risk-Adjusted)</span>
+                                        <span>Sortino-PPO (Điều chỉnh theo rủi ro)</span>
                                     </div>
                                     <div class="legend-item">
                                         <div class="legend-color" style="background: #6b7280;"></div>
-                                        <span>Buy & Hold (Benchmark)</span>
+                                        <span>Mua và Giữ (Chuẩn so sánh)</span>
                                     </div>
                                 </div>
                             </div>
@@ -505,7 +505,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-table"></i> Performance Metrics Comparison
+                                    <i class="fas fa-table"></i> So sánh chỉ số hiệu suất
                                 </h5>
                             </div>
                             <div class="card-body">
@@ -513,17 +513,17 @@
                                     <table class="results-table w-100">
                                         <thead>
                                             <tr>
-                                                <th>Model</th>
-                                                <th>Final Balance</th>
-                                                <th>Total Return</th>
-                                                <th>Sharpe Ratio</th>
-                                                <th>Sortino Ratio</th>
-                                                <th>Max Drawdown</th>
-                                                <th>Win Rate</th>
+                                                <th>Mô hình</th>
+                                                <th>Giá trị cuối kỳ</th>
+                                                <th>Tổng lợi nhuận</th>
+                                                <th>Tỷ lệ Sharpe</th>
+                                                <th>Tỷ lệ Sortino</th>
+                                                <th>Mức sụt giảm tối đa</th>
+                                                <th>Tỷ lệ thắng</th>
                                             </tr>
                                         </thead>
                                         <tbody id="metricsTableBody">
-                                            <!-- Results will be populated here -->
+                                            <!-- Kết quả sẽ được hiển thị tại đây -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -536,27 +536,27 @@
                                 <div class="card">
                                     <div class="card-header">
                                         <h5 class="card-title">
-                                            <i class="fas fa-lightbulb"></i> Analysis Summary
+                                            <i class="fas fa-lightbulb"></i> Tóm tắt phân tích
                                         </h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <h6>Risk-Neutral (PPO)</h6>
+                                                <h6>Trung lập rủi ro (PPO)</h6>
                                                 <p>Tối đa hóa lợi nhuận kỳ vọng nhưng có thể trải qua biến động cao hơn và giảm giá trong điều kiện thị trường bất lợi.</p>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>Risk-Sensitive Approaches</h6>
-                                                <p>CVaR-PPO and Sortino-PPO focus on risk management, potentially sacrificing some returns for better downside protection.</p>
+                                                <h6>Các cách tiếp cận có xét rủi ro</h6>
+                                                <p>CVaR-PPO và Sortino-PPO tập trung vào quản trị rủi ro, có thể đánh đổi một phần lợi nhuận để tăng khả năng bảo vệ khi thị trường giảm.</p>
                                             </div>
                                         </div>
                                         <div class="alert alert-info mt-3">
                                             <h6><i class="fas fa-exclamation-triangle"></i> Những hiểu biết chính:</h6>
                                             <ul class="mb-0">
-                                                <li><strong>Cân bằng Rủi ro-Lợi nhuận:</strong> Các mô hình nhạy cảm rủi ro thường cho thấy hành vi bảo thủ hơn</li>
-                                                <li><strong>Điều kiện Thị trường:</strong> Hiệu suất thay đổi đáng kể trên các thị trường tăng/giảm</li>
-                                                <li><strong>Chỉ số Rủi ro:</strong> Các mô hình khác nhau xuất sắc trong các biện pháp điều chỉnh rủi ro khác nhau</li>
-                                                <li><strong>Lựa chọn Chiến lược:</strong> Chọn dựa trên khả năng chịu rủi ro và mục tiêu đầu tư của bạn</li>
+                                                <li><strong>Cân bằng rủi ro-lợi nhuận:</strong> Các mô hình có xét rủi ro thường thể hiện hành vi thận trọng hơn</li>
+                                                <li><strong>Điều kiện thị trường:</strong> Hiệu suất có thể thay đổi rõ rệt giữa thị trường tăng và giảm</li>
+                                                <li><strong>Chỉ số rủi ro:</strong> Mỗi mô hình phù hợp với một cách đo rủi ro khác nhau</li>
+                                                <li><strong>Lựa chọn chiến lược:</strong> Cần dựa trên mức chịu rủi ro và mục tiêu đầu tư giả định</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -570,8 +570,8 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p>Nền tảng Giao dịch RL Nhạy cảm với Rủi ro | Được xây dựng với PyTorch & Django | Chỉ dành cho Mục đích Giáo dục</p>
-            <p><small>© 2026 - Model Comparison: Risk-Neutral vs Risk-Sensitive RL Trading</small></p>
+            <p>Nền tảng giao dịch RL nhạy cảm với rủi ro | Xây dựng bằng PyTorch & Django | Chỉ dành cho mục đích học tập</p>
+            <p><small>© 2026 - So sánh mô hình: Giao dịch RL trung lập rủi ro và nhạy cảm với rủi ro</small></p>
         </div>
     </div>
 
@@ -632,10 +632,10 @@
                     displayComparisonResults(data.results, data.data_info);
                     results.style.display = 'block';
                 } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
+                    alert('Lỗi: ' + (data.error || 'Lỗi không xác định'));
                 }
             } catch (error) {
-                alert('Error running comparison: ' + error.message);
+                alert('Lỗi khi chạy so sánh: ' + error.message);
             }
 
             loading.style.display = 'none';
@@ -662,7 +662,7 @@
                     y: results.cvar.portfolio_values,
                     type: 'scatter',
                     mode: 'lines',
-                    name: 'CVaR-PPO (Nhạy cảm rủi ro)',
+                    name: 'CVaR-PPO (Nhạy cảm với rủi ro)',
                     line: {color: '#059669', width: 3}
                 });
             }
@@ -673,7 +673,7 @@
                     y: results.sortino.portfolio_values,
                     type: 'scatter',
                     mode: 'lines',
-                    name: 'Sortino-PPO (Điều chỉnh rủi ro)',
+                    name: 'Sortino-PPO (Điều chỉnh theo rủi ro)',
                     line: {color: '#7c3aed', width: 3}
                 });
             }
@@ -684,15 +684,15 @@
                     y: results.buy_hold.portfolio_values,
                     type: 'scatter',
                     mode: 'lines',
-                    name: 'Mua & Giữ (Điểm chuẩn)',
+                    name: 'Mua và Giữ (Chuẩn so sánh)',
                     line: {color: '#6b7280', width: 2, dash: 'dot'}
                 });
             }
 
             const layout = {
-                title: `So sánh Mô hình: ${dataInfo.symbol} (${dataInfo.start_date} đến ${dataInfo.end_date})`,
-                xaxis: {title: 'Ngày Giao dịch'},
-                yaxis: {title: 'Giá trị Danh mục ($)'},
+                title: `So sánh mô hình: ${dataInfo.symbol} (${dataInfo.start_date} đến ${dataInfo.end_date})`,
+                xaxis: {title: 'Ngày giao dịch'},
+                yaxis: {title: 'Giá trị danh mục ($)'},
                 showlegend: true,
                 legend: {x: 0, y: 1}
             };
@@ -705,9 +705,9 @@
 
             const models = [
                 {name: 'PPO (Trung lập rủi ro)', data: results.ppo, color: '#2563eb'},
-                {name: 'CVaR-PPO (Nhạy cảm rủi ro)', data: results.cvar, color: '#059669'},
-                {name: 'Sortino-PPO (Điều chỉnh rủi ro)', data: results.sortino, color: '#7c3aed'},
-                {name: 'Mua & Giữ (Điểm chuẩn)', data: results.buy_hold, color: '#6b7280'}
+                {name: 'CVaR-PPO (Nhạy cảm với rủi ro)', data: results.cvar, color: '#059669'},
+                {name: 'Sortino-PPO (Điều chỉnh theo rủi ro)', data: results.sortino, color: '#7c3aed'},
+                {name: 'Mua và Giữ (Chuẩn so sánh)', data: results.buy_hold, color: '#6b7280'}
             ];
 
             models.forEach(model => {
@@ -715,11 +715,11 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td><strong style="color: ${model.color}">${model.name}</strong></td>
-                        <td>$${(model.data.final_balance !== undefined ? model.data.final_balance.toFixed(2) : 'N/A')}</td>
-                        <td>${(model.data.total_return !== undefined ? model.data.total_return.toFixed(2) : 'N/A')}%</td>
-                        <td>${(model.data.sharpe_ratio !== undefined ? model.data.sharpe_ratio.toFixed(2) : 'N/A')}</td>
-                        <td>${((model.data.sortino_ratio || model.data.sharpe_ratio) !== undefined ? (model.data.sortino_ratio || model.data.sharpe_ratio).toFixed(2) : 'N/A')}</td>
-                        <td>${(model.data.max_drawdown !== undefined ? model.data.max_drawdown.toFixed(2) : 'N/A')}%</td>
+                        <td>${(model.data.final_balance !== undefined ? '$' + model.data.final_balance.toFixed(2) : 'Không có dữ liệu')}</td>
+                        <td>${(model.data.total_return !== undefined ? model.data.total_return.toFixed(2) + '%' : 'Không có dữ liệu')}</td>
+                        <td>${(model.data.sharpe_ratio !== undefined ? model.data.sharpe_ratio.toFixed(2) : 'Không có dữ liệu')}</td>
+                        <td>${((model.data.sortino_ratio || model.data.sharpe_ratio) !== undefined ? (model.data.sortino_ratio || model.data.sharpe_ratio).toFixed(2) : 'Không có dữ liệu')}</td>
+                        <td>${(model.data.max_drawdown !== undefined ? model.data.max_drawdown.toFixed(2) + '%' : 'Không có dữ liệu')}</td>
                         <td>${(model.data.win_rate || 0).toFixed(1)}%</td>
                     `;
                     tableBody.appendChild(row);

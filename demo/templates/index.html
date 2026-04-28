@@ -4,471 +4,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nền tảng Giao dịch RL Nhạy cảm với Rủi ro</title>
+    <title>Nền tảng giao dịch RL nhạy cảm với rủi ro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="https://img.icons8.com/color/48/000000/trading.png" type="image/png">
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --primary-color: #2563eb;
-            --secondary-color: #64748b;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --dark-color: #1f2937;
+            --secondary-color: #475569;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --purple-color: #7c3aed;
+            --dark-color: #111827;
             --light-color: #f8fafc;
-            --border-color: #e5e7eb;
+            --border-color: #e2e8f0;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: #e5edf7;
+            color: var(--dark-color);
             margin: 0;
         }
 
         .main-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            margin: 20px;
-            overflow: hidden;
+            background: #ffffff;
+            min-height: 100vh;
         }
 
-        .header {
-            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+        .hero {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
             color: white;
-            padding: 3rem 2rem;
-            text-align: center;
-            position: relative;
+            padding: 4rem 2rem 3rem;
         }
 
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.1;
-        }
-
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin: 0;
-            max-width: 600px;
+        .hero-inner {
+            max-width: 1120px;
             margin: 0 auto;
         }
 
-        .status-badge {
+        .hero-eyebrow {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
-            font-size: 1rem;
-            margin-top: 2rem;
-            backdrop-filter: blur(10px);
+            padding: 0.5rem 0.85rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            font-size: 0.9rem;
+            margin-bottom: 1.25rem;
         }
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--success-color);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .hero-section {
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-
-        .hero-description {
-            max-width: 800px;
-            margin: 0 auto 3rem;
-            font-size: 1.1rem;
-            line-height: 1.6;
-            color: var(--secondary-color);
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin: 4rem 0;
-        }
-
-        .feature-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            padding: 3rem 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        }
-
-        .feature-icon {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--success-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .feature-title {
-            font-size: 1.5rem;
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.6rem);
             font-weight: 700;
+            max-width: 850px;
             margin-bottom: 1rem;
-            color: var(--dark-color);
         }
 
-        .feature-description {
-            color: var(--secondary-color);
-            line-height: 1.6;
+        .hero-lead {
+            max-width: 780px;
+            font-size: 1.15rem;
+            line-height: 1.7;
+            opacity: 0.94;
             margin-bottom: 2rem;
         }
 
-        .feature-btn {
-            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .hero-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.9rem 1.25rem;
+            border-radius: 10px;
+            text-decoration: none;
             font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            background: #ffffff;
+            color: #1e3a8a;
         }
 
-        .feature-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        .hero-btn.secondary {
+            background: rgba(255, 255, 255, 0.12);
             color: white;
-            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .models-showcase {
-            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-            padding: 4rem 2rem;
-            margin: 4rem -2rem -2rem;
+        .section {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 3.25rem 2rem;
         }
 
-        .models-title {
-            text-align: center;
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--dark-color);
-            margin-bottom: 1rem;
+        .section-muted {
+            background: var(--light-color);
         }
 
-        .models-subtitle {
-            text-align: center;
-            color: var(--secondary-color);
-            font-size: 1.1rem;
-            margin-bottom: 3rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .models-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .model-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .model-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-        }
-
-        .model-card.ppo::before { background: #2563eb; }
-        .model-card.cvar::before { background: #059669; }
-        .model-card.sortino::before { background: #7c3aed; }
-
-        .model-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .model-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .ppo .model-icon { color: #2563eb; }
-        .cvar .model-icon { color: #059669; }
-        .sortino .model-icon { color: #7c3aed; }
-
-        .model-name {
-            font-size: 1.3rem;
+        .section-title {
+            font-size: 1.8rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
 
-        .model-type {
+        .section-subtitle {
             color: var(--secondary-color);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            font-weight: 500;
+            max-width: 760px;
+            margin-bottom: 1.75rem;
         }
 
-        .model-description {
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+            min-height: 100%;
+        }
+
+        .info-card i {
+            font-size: 1.35rem;
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+        }
+
+        .info-card h3,
+        .info-card h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.45rem;
+        }
+
+        .info-card p {
             color: var(--secondary-color);
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin-bottom: 1.5rem;
+            margin: 0;
+            line-height: 1.55;
         }
 
-        .model-btn {
-            background: transparent;
-            border: 2px solid;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: inline-block;
+        .workflow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.85rem;
         }
 
-        .ppo .model-btn { border-color: #2563eb; color: #2563eb; }
-        .cvar .model-btn { border-color: #059669; color: #059669; }
-        .sortino .model-btn { border-color: #7c3aed; color: #7c3aed; }
+        .step-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            position: relative;
+        }
 
-        .model-btn:hover {
-            background: currentColor;
-            color: white !important;
-            text-decoration: none;
-            transform: translateY(-2px);
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .model-card.ppo { border-top: 4px solid var(--primary-color); }
+        .model-card.cvar { border-top: 4px solid var(--success-color); }
+        .model-card.sortino { border-top: 4px solid var(--purple-color); }
+
+        .usage-list {
+            display: grid;
+            gap: 0.85rem;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .usage-list li {
+            display: flex;
+            gap: 0.85rem;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        .usage-list span {
+            flex: 0 0 auto;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ecfdf5;
+            color: #047857;
+            font-weight: 700;
         }
 
         .footer {
-            background: var(--dark-color);
+            background: #111827;
             color: white;
             text-align: center;
-            padding: 2rem;
-            margin-top: 0;
+            padding: 1.5rem 1rem;
         }
 
-        .footer a {
-            color: var(--primary-color);
-            text-decoration: none;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
+        @media (max-width: 640px) {
+            .hero,
+            .section {
+                padding-left: 1rem;
+                padding-right: 1rem;
             }
 
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .models-grid {
-                grid-template-columns: 1fr;
+            .hero-actions {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
     <div class="main-container">
-        <!-- Header -->
-        <div class="header">
-            <h1><i class="fas fa-robot"></i> Nền tảng Giao dịch RL Nhạy cảm với Rủi ro</h1>
-            <p>Học Tăng cường Tiên tiến cho Giao dịch Thuật toán</p>
-            <div class="status-badge">
-                <div class="status-dot"></div>
-                <span>Hệ thống Sẵn sàng</span>
-            </div>
-        </div>
-
-        <!-- Hero Section -->
-        <div class="hero-section">
-            <div class="hero-description">
-                <p>
-                    Khám phá công nghệ tiên tiến nhất của giao dịch thuật toán với nền tảng toàn diện của chúng tôi
-                    cung cấp ba cách tiếp cận học tăng cường riêng biệt: PPO truyền thống, CVaR-PPO nhạy cảm với rủi ro,
-                    và Sortino-PPO điều chỉnh rủi ro. Kiểm tra dự đoán thời gian thực, chạy kiểm tra lại lịch sử,
-                    và so sánh hiệu suất mô hình trên các điều kiện thị trường khác nhau.
+        <header class="hero">
+            <div class="hero-inner">
+                <div class="hero-eyebrow">
+                    <i class="fas fa-graduation-cap"></i>
+                    Demo đồ án giao dịch định lượng
+                </div>
+                <h1>Học tăng cường nhạy cảm với rủi ro cho giao dịch</h1>
+                <p class="hero-lead">
+                    Hệ thống học chính sách giao dịch bằng học tăng cường để tạo tín hiệu Mua/Bán/Giữ.
+                    Demo này không dự đoán giá trực tiếp, mà đánh giá cách các mô hình ra quyết định trong môi trường giao dịch có chi phí và rủi ro.
                 </p>
-            </div>
-
-            <!-- Quick Access Features -->
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3 class="feature-title">Dự đoán Thời gian Thực</h3>
-                    <p class="feature-description">
-                        Nhận tín hiệu giao dịch trực tiếp từ tất cả ba mô hình với dữ liệu thị trường mới nhất.
-                        So sánh cách tiếp cận trung lập vs nhạy cảm với rủi ro trong thời gian thực.
-                    </p>
-                    <a href="/ppo" class="feature-btn">
-                        <i class="fas fa-play"></i> Bắt đầu Giao dịch
+                <div class="hero-actions">
+                    <a href="/ppo" class="hero-btn">
+                        <i class="fas fa-bolt"></i> Dự đoán thời gian thực
                     </a>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <h3 class="feature-title">Kiểm tra Lại Lịch sử</h3>
-                    <p class="feature-description">
-                        Kiểm tra hiệu suất mô hình trên dữ liệu lịch sử từ năm 2022 trở đi.
-                        Phân tích lợi nhuận, các chỉ số rủi ro và mô hình rút vốn.
-                    </p>
-                    <a href="/compare" class="feature-btn">
-                        <i class="fas fa-history"></i> Chạy Kiểm tra Lại
+                    <a href="/ppo" class="hero-btn secondary">
+                        <i class="fas fa-history"></i> Kiểm tra lại lịch sử
                     </a>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-balance-scale"></i>
-                    </div>
-                    <h3 class="feature-title">So sánh Mô hình</h3>
-                    <p class="feature-description">
-                        So sánh tất cả các mô hình song song với các chỉ số toàn diện.
-                        Hiểu được sự đánh đổi giữa rủi ro và lợi nhuận của các cách tiếp cận khác nhau.
-                    </p>
-                    <a href="/compare" class="feature-btn">
-                        <i class="fas fa-balance-scale"></i> So sánh Mô hình
+                    <a href="/compare" class="hero-btn secondary">
+                        <i class="fas fa-scale-balanced"></i> So sánh mô hình
                     </a>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <!-- Models Showcase -->
-        <div class="models-showcase">
-            <h2 class="models-title">Các Mô hình RL Giao dịch Của Chúng Tôi</h2>
-            <p class="models-subtitle">
-                Ba cách tiếp cận học tăng cường riêng biệt, mỗi cách được tối ưu hóa cho các sở thích rủi ro và điều kiện thị trường khác nhau.
+        <section class="section">
+            <h2 class="section-title">Luồng hoạt động của hệ thống</h2>
+            <p class="section-subtitle">
+                Dữ liệu thị trường được chuyển thành trạng thái giao dịch, sau đó mô hình RL học chính sách để đưa ra hành động.
             </p>
+            <div class="workflow">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Dữ liệu thị trường</h3>
+                    <p>Thu thập dữ liệu OHLCV của SPY từ Yahoo Finance.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Chỉ báo kỹ thuật</h3>
+                    <p>Tạo các đặc trưng như SMA, RSI, MACD, Bollinger Bands và returns.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Môi trường giao dịch</h3>
+                    <p>Mô phỏng danh mục với vốn ban đầu, phí giao dịch và trượt giá.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Mô hình RL</h3>
+                    <p>PPO, CVaR-PPO và Sortino-PPO học chính sách hành động.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <h3>Tín hiệu & backtest</h3>
+                    <p>Xuất tín hiệu Mua/Bán/Giữ và đánh giá bằng kiểm tra lại lịch sử.</p>
+                </div>
+            </div>
+        </section>
 
-            <div class="models-grid">
-                <div class="model-card ppo">
-                    <div class="model-icon">
+        <div class="section-muted">
+            <section class="section">
+                <h2 class="section-title">Ba mô hình được so sánh</h2>
+                <p class="section-subtitle">
+                    Mỗi mô hình đại diện cho một cách cân bằng khác nhau giữa lợi nhuận kỳ vọng và rủi ro.
+                </p>
+                <div class="card-grid">
+                    <div class="info-card model-card ppo">
                         <i class="fas fa-brain"></i>
+                        <h3>PPO</h3>
+                        <p>Trung lập rủi ro, tối ưu lợi nhuận kỳ vọng và dùng làm mô hình cơ sở.</p>
                     </div>
-                    <h4 class="model-name">PPO (Trung lập rủi ro)</h4>
-                    <div class="model-type">Cách tiếp cận Cơ bản</div>
-                    <p class="model-description">
-                        Tối ưu hóa Chính sách Tiếp cận Truyền thống tối đa hóa lợi nhuận dự kiến mà không có quản lý rủi ro rõ ràng.
-                        Tốt nhất cho điều kiện thị trường tăng giá.
-                    </p>
-                    <a href="/ppo" class="model-btn">
-                        <i class="fas fa-external-link-alt"></i> Khám phá PPO
-                    </a>
-                </div>
-
-                <div class="model-card cvar">
-                    <div class="model-icon">
+                    <div class="info-card model-card cvar">
                         <i class="fas fa-shield-alt"></i>
+                        <h3>CVaR-PPO</h3>
+                        <p>Nhạy cảm với rủi ro, chú trọng rủi ro đuôi và các kịch bản lợi nhuận xấu.</p>
                     </div>
-                    <h4 class="model-name">CVaR-PPO (Nhạy cảm rủi ro)</h4>
-                    <div class="model-type">Bảo vệ Bên dưới</div>
-                    <p class="model-description">
-                        PPO bị ràng buộc CVaR phạt lợi nhuận 15% tệ nhất. Tập trung vào quản lý rủi ro đuôi và giảm rút vốn.
-                        Lý tưởng cho các nhà đầu tư thận trọng.
-                    </p>
-                    <a href="/cvar" class="model-btn">
-                        <i class="fas fa-external-link-alt"></i> Khám phá CVaR-PPO
-                    </a>
-                </div>
-
-                <div class="model-card sortino">
-                    <div class="model-icon">
+                    <div class="info-card model-card sortino">
                         <i class="fas fa-chart-line"></i>
+                        <h3>Sortino-PPO</h3>
+                        <p>Điều chỉnh theo rủi ro, tập trung vào biến động bất lợi thay vì toàn bộ biến động.</p>
                     </div>
-                    <h4 class="model-name">Sortino-PPO (Điều chỉnh rủi ro)</h4>
-                    <div class="model-type">Lợi nhuận Điều chỉnh Rủi ro</div>
-                    <p class="model-description">
-                        Tối ưu hóa tỷ lệ Sortino tập trung vào biến động bên dưới. Cân bằng rủi ro và lợi nhuận hiệu quả hơn tỷ lệ Sharpe.
-                        Tốt nhất cho các nhà đầu tư tinh vi.
-                    </p>
-                    <a href="/sortino" class="model-btn">
-                        <i class="fas fa-external-link-alt"></i> Khám phá Sortino-PPO
-                    </a>
                 </div>
-            </div>
-
-            <!-- Dashboard Link -->
-            <div class="text-center">
-                <a href="/dashboard" class="feature-btn" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
-                    <i class="fas fa-tachometer-alt"></i> Xem Bảng điều khiển Dự án
-                </a>
-            </div>
+            </section>
         </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            <p>Nền tảng Giao dịch RL Nhạy cảm với Rủi ro | Được xây dựng với PyTorch & Django | Chỉ dành mục đích Giáo dục</p>
-            <p><small>© 2026 - Học Tăng cường Tiên tiến cho Giao dịch Thuật toán</small></p>
-        </div>
+        <section class="section">
+            <h2 class="section-title">Cách sử dụng demo</h2>
+            <p class="section-subtitle">
+                Quy trình dưới đây giúp người mới bắt đầu kiểm tra nhanh các chức năng chính của web demo.
+            </p>
+            <ul class="usage-list">
+                <li>
+                    <span>1</span>
+                    <div><strong>Nhập mã cổ phiếu.</strong> Khuyến nghị dùng SPY vì đây là mã được dùng trong dữ liệu huấn luyện.</div>
+                </li>
+                <li>
+                    <span>2</span>
+                    <div><strong>Lấy tín hiệu Mua/Bán/Giữ.</strong> Tín hiệu thể hiện hành động chính sách, không phải dự báo giá.</div>
+                </li>
+                <li>
+                    <span>3</span>
+                    <div><strong>Chạy kiểm tra lại lịch sử.</strong> Quan sát giá trị danh mục trong một giai đoạn sau huấn luyện.</div>
+                </li>
+                <li>
+                    <span>4</span>
+                    <div><strong>So sánh bằng metric.</strong> Đánh giá bằng Tổng lợi nhuận, Sharpe, Sortino, Max Drawdown, Volatility và Win Rate.</div>
+                </li>
+            </ul>
+        </section>
+
+        <footer class="footer">
+            <p class="mb-1">Nền tảng giao dịch RL nhạy cảm với rủi ro | Xây dựng bằng PyTorch & Django</p>
+            <small>Chỉ dành cho mục đích học tập và trình bày đồ án</small>
+        </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

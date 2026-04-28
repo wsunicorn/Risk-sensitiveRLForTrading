@@ -44,17 +44,17 @@ async function checkStatus() {
         
         if (data.packages_available) {
             statusIndicator.className = 'status-indicator online';
-            statusText.textContent = data.models_loaded ? 'Models Loaded ✓' : 'System Ready';
+            statusText.textContent = data.models_loaded ? 'Đã tải mô hình ✓' : 'Hệ thống sẵn sàng';
         } else {
             statusIndicator.className = 'status-indicator offline';
-            statusText.textContent = 'Packages Not Installed';
+            statusText.textContent = 'Thiếu gói phụ thuộc';
         }
     } catch (error) {
-        console.error('Error checking status:', error);
+        console.error('Lỗi khi kiểm tra trạng thái:', error);
         const statusIndicator = document.getElementById('statusIndicator');
         const statusText = document.getElementById('statusText');
         statusIndicator.className = 'status-indicator offline';
-        statusText.textContent = 'System Error';
+        statusText.textContent = 'Lỗi hệ thống';
     }
 }
 
@@ -72,12 +72,12 @@ async function getPrediction(model) {
     const symbol = document.getElementById('rt-symbol').value.toUpperCase();
     
     if (!symbol) {
-        showError('rt-error', 'Please enter a stock symbol');
+        showError('rt-error', 'Vui lòng nhập mã giao dịch');
         return;
     }
     
     // Show loading
-    document.getElementById('rt-loading-text').textContent = `Fetching ${model.toUpperCase()} prediction for ${symbol}...`;
+    document.getElementById('rt-loading-text').textContent = `Đang lấy tín hiệu ${model.toUpperCase()} cho ${symbol}...`;
     showLoading('rt-loading', 'rt-results', 'rt-error');
     
     try {
@@ -95,7 +95,7 @@ async function getPrediction(model) {
         const data = await response.json();
         
         if (!response.ok || !data.success) {
-            throw new Error(data.error || 'Failed to get prediction');
+            throw new Error(data.error || 'Không thể lấy tín hiệu');
         }
         
         // Store prediction
@@ -129,7 +129,7 @@ function displayPrediction(model, data) {
     // Current price
     document.getElementById(`${prefix}-price`).textContent = `$${data.current_price.toFixed(2)}`;
     document.getElementById(`${prefix}-symbol`).textContent = data.symbol;
-    document.getElementById(`${prefix}-timestamp`).textContent = `Updated: ${new Date(data.timestamp).toLocaleString()}`;
+    document.getElementById(`${prefix}-timestamp`).textContent = `Cập nhật: ${new Date(data.timestamp).toLocaleString()}`;
     
     // Get the specific model data
     const modelData = data[model];
@@ -137,11 +137,12 @@ function displayPrediction(model, data) {
     // Signal
     const signal = modelData.signal;
     const signalBadge = document.getElementById(`${prefix}-signal`);
-    signalBadge.textContent = signal;
+    const signalText = {BUY: 'MUA', SELL: 'BÁN', HOLD: 'GIỮ'}[signal] || signal;
+    signalBadge.textContent = signalText;
     signalBadge.className = `signal-badge ${signal.toLowerCase()}`;
     
     // Action
-    document.getElementById(`${prefix}-action`).textContent = `Action: ${modelData.action.toFixed(3)}`;
+    document.getElementById(`${prefix}-action`).textContent = `Hành động: ${modelData.action.toFixed(3)}`;
     
     // Strength
     const strength = modelData.strength;
@@ -157,29 +158,29 @@ function generateAnalysis(model, signal, action, strength, price) {
     let analysis = '';
     
     if (model === 'ppo') {
-        analysis += '<p><strong>Risk-Neutral Approach:</strong> ';
+        analysis += '<p><strong>Cách tiếp cận trung lập rủi ro:</strong> ';
         if (signal === 'BUY') {
-            analysis += `PPO identifies a bullish opportunity with ${(strength * 100).toFixed(1)}% confidence. `;
-            analysis += 'This model focuses on maximizing returns without explicit risk constraints.';
+            analysis += `PPO nhận diện cơ hội mua với độ mạnh tín hiệu ${(strength * 100).toFixed(1)}%. `;
+            analysis += 'Mô hình này tập trung tối đa hóa lợi nhuận mà không có ràng buộc rủi ro rõ ràng.';
         } else if (signal === 'SELL') {
-            analysis += `PPO detects a bearish signal with ${(strength * 100).toFixed(1)}% confidence. `;
-            analysis += 'The model suggests reducing exposure to maximize expected returns.';
+            analysis += `PPO phát hiện tín hiệu bán với độ mạnh tín hiệu ${(strength * 100).toFixed(1)}%. `;
+            analysis += 'Mô hình gợi ý giảm mức nắm giữ để tối ưu lợi nhuận kỳ vọng.';
         } else {
-            analysis += 'PPO recommends holding current position. ';
-            analysis += 'Market conditions do not warrant significant action at this time.';
+            analysis += 'PPO gợi ý giữ nguyên vị thế hiện tại. ';
+            analysis += 'Điều kiện thị trường hiện chưa cho thấy cần hành động mạnh.';
         }
         analysis += '</p>';
     } else {
-        analysis += '<p><strong>Risk-Sensitive Approach:</strong> ';
+        analysis += '<p><strong>Cách tiếp cận nhạy cảm với rủi ro:</strong> ';
         if (signal === 'BUY') {
-            analysis += `CVaR-PPO suggests buying with ${(strength * 100).toFixed(1)}% confidence. `;
-            analysis += 'This signal considers downside risk and tail events, indicating acceptable risk-adjusted opportunity.';
+            analysis += `CVaR-PPO gợi ý mua với độ mạnh tín hiệu ${(strength * 100).toFixed(1)}%. `;
+            analysis += 'Tín hiệu này đã xét rủi ro giảm giá và rủi ro đuôi.';
         } else if (signal === 'SELL') {
-            analysis += `CVaR-PPO recommends selling with ${(strength * 100).toFixed(1)}% confidence. `;
-            analysis += 'The model prioritizes protecting against worst-case scenarios and managing drawdown risk.';
+            analysis += `CVaR-PPO gợi ý bán với độ mạnh tín hiệu ${(strength * 100).toFixed(1)}%. `;
+            analysis += 'Mô hình ưu tiên bảo vệ danh mục trước các kịch bản bất lợi và rủi ro sụt giảm.';
         } else {
-            analysis += 'CVaR-PPO advises holding current position. ';
-            analysis += 'Risk-adjusted analysis does not justify portfolio rebalancing at this moment.';
+            analysis += 'CVaR-PPO gợi ý giữ nguyên vị thế hiện tại. ';
+            analysis += 'Phân tích có xét rủi ro chưa cho thấy cần tái cân bằng danh mục.';
         }
         analysis += '</p>';
     }
@@ -193,19 +194,20 @@ function showComparison() {
     
     const ppoSignal = predictions.ppo.ppo.signal;
     const cvarSignal = predictions.cvar.cvar.signal;
+    const signalLabels = {BUY: 'MUA', SELL: 'BÁN', HOLD: 'GIỮ'};
     
     let comparison = '<ul>';
     
     // Agreement check
     if (ppoSignal === cvarSignal) {
-        comparison += `<li><strong>✅ Agreement:</strong> Both models recommend <strong>${ppoSignal}</strong>. This suggests strong conviction across different risk approaches.</li>`;
+        comparison += `<li><strong>Đồng thuận:</strong> Cả hai mô hình đều gợi ý <strong>${signalLabels[ppoSignal] || ppoSignal}</strong>. Điều này cho thấy tín hiệu nhất quán giữa các cách tiếp cận rủi ro.</li>`;
     } else {
-        comparison += `<li><strong>⚠️ Disagreement:</strong> PPO suggests <strong>${ppoSignal}</strong> while CVaR-PPO suggests <strong>${cvarSignal}</strong>.</li>`;
+        comparison += `<li><strong>Khác biệt:</strong> PPO gợi ý <strong>${signalLabels[ppoSignal] || ppoSignal}</strong>, trong khi CVaR-PPO gợi ý <strong>${signalLabels[cvarSignal] || cvarSignal}</strong>.</li>`;
         
         if (ppoSignal === 'BUY' && (cvarSignal === 'HOLD' || cvarSignal === 'SELL')) {
-            comparison += '<li><strong>Interpretation:</strong> PPO sees profit opportunity but CVaR-PPO is more cautious due to risk considerations.</li>';
+            comparison += '<li><strong>Diễn giải:</strong> PPO thấy cơ hội lợi nhuận nhưng CVaR-PPO thận trọng hơn do xét đến rủi ro.</li>';
         } else if (cvarSignal === 'BUY' && (ppoSignal === 'HOLD' || ppoSignal === 'SELL')) {
-            comparison += '<li><strong>Interpretation:</strong> CVaR-PPO finds risk-adjusted opportunity that PPO does not prioritize.</li>';
+            comparison += '<li><strong>Diễn giải:</strong> CVaR-PPO nhận diện cơ hội đã điều chỉnh theo rủi ro mà PPO không ưu tiên.</li>';
         }
     }
     
@@ -213,10 +215,10 @@ function showComparison() {
     const ppoStrength = predictions.ppo.ppo.strength * 100;
     const cvarStrength = predictions.cvar.cvar.strength * 100;
     
-    comparison += `<li><strong>Confidence Levels:</strong> PPO: ${ppoStrength.toFixed(1)}% | CVaR-PPO: ${cvarStrength.toFixed(1)}%</li>`;
+    comparison += `<li><strong>Độ mạnh tín hiệu:</strong> PPO: ${ppoStrength.toFixed(1)}% | CVaR-PPO: ${cvarStrength.toFixed(1)}%</li>`;
     
     if (Math.abs(ppoStrength - cvarStrength) > 20) {
-        comparison += '<li><strong>Note:</strong> Significant difference in confidence levels suggests different market interpretations.</li>';
+        comparison += '<li><strong>Ghi chú:</strong> Chênh lệch lớn về độ mạnh tín hiệu cho thấy hai mô hình diễn giải thị trường khác nhau.</li>';
     }
     
     comparison += '</ul>';
@@ -235,13 +237,13 @@ async function runBacktest() {
     const initialBalance = parseInt(document.getElementById('bt-balance').value);
     
     if (!symbol || !startDate || !endDate) {
-        showError('bt-error', 'Please fill in all fields');
+        showError('bt-error', 'Vui lòng điền đầy đủ thông tin');
         return;
     }
     
     // Validate dates
     if (new Date(startDate) >= new Date(endDate)) {
-        showError('bt-error', 'Start date must be before end date');
+        showError('bt-error', 'Ngày bắt đầu phải trước ngày kết thúc');
         return;
     }
     
@@ -265,7 +267,7 @@ async function runBacktest() {
         const data = await response.json();
         
         if (!response.ok || !data.success) {
-            throw new Error(data.error || 'Failed to run backtest');
+            throw new Error(data.error || 'Không thể chạy kiểm tra lại');
         }
         
         displayBacktestResults(data.results, data.data_info);
@@ -280,7 +282,7 @@ async function runBacktest() {
 
 function displayBacktestResults(results, dataInfo) {
     // Display period info
-    document.getElementById('bt-period').textContent = `${dataInfo.start_date} to ${dataInfo.end_date}`;
+    document.getElementById('bt-period').textContent = `${dataInfo.start_date} đến ${dataInfo.end_date}`;
     document.getElementById('bt-days').textContent = dataInfo.num_days;
     document.getElementById('bt-symbol-display').textContent = dataInfo.symbol;
     
@@ -289,12 +291,12 @@ function displayBacktestResults(results, dataInfo) {
     tbody.innerHTML = '';
     
     const metrics = [
-        { key: 'total_return', label: 'Total Return', format: v => `${(v * 100).toFixed(2)}%` },
-        { key: 'final_value', label: 'Final Value', format: v => `$${v.toFixed(2)}` },
-        { key: 'sharpe_ratio', label: 'Sharpe Ratio', format: v => v.toFixed(4) },
-        { key: 'max_drawdown', label: 'Max Drawdown', format: v => `${(v * 100).toFixed(2)}%` },
-        { key: 'win_rate', label: 'Win Rate', format: v => `${(v * 100).toFixed(2)}%` },
-        { key: 'volatility', label: 'Volatility', format: v => `${(v * 100).toFixed(2)}%` }
+        { key: 'total_return', label: 'Tổng lợi nhuận', format: v => `${(v * 100).toFixed(2)}%` },
+        { key: 'final_value', label: 'Giá trị cuối kỳ', format: v => `$${v.toFixed(2)}` },
+        { key: 'sharpe_ratio', label: 'Tỷ lệ Sharpe', format: v => v.toFixed(4) },
+        { key: 'max_drawdown', label: 'Mức sụt giảm tối đa', format: v => `${(v * 100).toFixed(2)}%` },
+        { key: 'win_rate', label: 'Tỷ lệ thắng', format: v => `${(v * 100).toFixed(2)}%` },
+        { key: 'volatility', label: 'Độ biến động', format: v => `${(v * 100).toFixed(2)}%` }
     ];
     
     metrics.forEach(metric => {
@@ -343,14 +345,14 @@ function createPortfolioChart(results) {
         y: bhValues,
         type: 'scatter',
         mode: 'lines',
-        name: 'Buy & Hold',
+        name: 'Mua và Giữ',
         line: { color: '#10b981', width: 2 }
     };
     
     const layout = {
-        title: 'Portfolio Value Over Time',
-        xaxis: { title: 'Date' },
-        yaxis: { title: 'Portfolio Value ($)' },
+        title: 'Giá trị danh mục theo thời gian',
+        xaxis: { title: 'Ngày' },
+        yaxis: { title: 'Giá trị danh mục ($)' },
         hovermode: 'x unified',
         template: 'plotly_white'
     };
@@ -364,7 +366,7 @@ function createComparisonChart(results) {
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Total Return', 'Sharpe Ratio', 'Win Rate'],
+            labels: ['Tổng lợi nhuận', 'Tỷ lệ Sharpe', 'Tỷ lệ thắng'],
             datasets: [
                 {
                     label: 'PPO',
@@ -385,7 +387,7 @@ function createComparisonChart(results) {
                     backgroundColor: 'rgba(220, 38, 38, 0.7)'
                 },
                 {
-                    label: 'Buy & Hold',
+                    label: 'Mua và Giữ',
                     data: [
                         results.buy_hold.metrics.total_return * 100,
                         results.buy_hold.metrics.sharpe_ratio,
@@ -401,7 +403,7 @@ function createComparisonChart(results) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Performance Metrics Comparison'
+                    text: 'So sánh chỉ số hiệu suất'
                 },
                 legend: {
                     position: 'top'
@@ -428,7 +430,7 @@ async function loadComparison() {
         const data = await response.json();
         
         if (!response.ok || !data.success) {
-            throw new Error(data.error || 'Failed to load comparison');
+            throw new Error(data.error || 'Không thể tải dữ liệu so sánh');
         }
         
         displayComparison(data.comparison);
@@ -482,7 +484,7 @@ function createRadarChart(results) {
     new Chart(ctx, {
         type: 'radar',
         data: {
-            labels: ['Return', 'Sharpe Ratio', 'Risk Control (Drawdown)', 'Win Rate', 'Stability (Low Vol)'],
+            labels: ['Lợi nhuận', 'Tỷ lệ Sharpe', 'Kiểm soát rủi ro (sụt giảm)', 'Tỷ lệ thắng', 'Ổn định (biến động thấp)'],
             datasets: [
                 {
                     label: 'PPO',
@@ -511,7 +513,7 @@ function createRadarChart(results) {
                     pointBackgroundColor: 'rgba(220, 38, 38, 1)'
                 },
                 {
-                    label: 'Buy & Hold',
+                    label: 'Mua và Giữ',
                     data: [
                         normalizeReturn(results['Buy & Hold'].total_return),
                         normalizeSharpe(results['Buy & Hold'].sharpe_ratio),
@@ -540,7 +542,7 @@ function createRadarChart(results) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Model Performance Radar Chart (Normalized Metrics)'
+                    text: 'Biểu đồ radar hiệu suất mô hình (chỉ số đã chuẩn hóa)'
                 },
                 legend: {
                     position: 'top'
