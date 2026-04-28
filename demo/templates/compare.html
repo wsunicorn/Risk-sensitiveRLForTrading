@@ -1,731 +1,1088 @@
-<!DOCTYPE html>
+<!doctype html>
 {% load static %}
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>So sánh Mô hình - Nền tảng Giao dịch RL Nhạy cảm với Rủi ro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://img.icons8.com/color/48/000000/trading.png" type="image/png">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      So sánh chiến lược - Nền tảng Giao dịch RL Nhạy cảm với Rủi ro
+    </title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="https://img.icons8.com/color/48/000000/trading.png"
+      type="image/png"
+    />
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        :root {
-            --primary-color: #dc2626;
-            --secondary-color: #64748b;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --dark-color: #1f2937;
-            --light-color: #f8fafc;
-            --border-color: #e5e7eb;
+      :root {
+        --primary-color: #dc2626;
+        --secondary-color: #64748b;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --dark-color: #1f2937;
+        --light-color: #f8fafc;
+        --border-color: #e5e7eb;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      .main-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, var(--primary-color), #b91c1c);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+      }
+
+      .model-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        margin-top: 1rem;
+      }
+
+      .nav-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+      }
+
+      .nav-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .nav-btn:hover {
+        background: #b91c1c;
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+      }
+
+      .content-section {
+        padding: 2rem;
+      }
+
+      .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border: none;
+        margin-bottom: 2rem;
+        overflow: hidden;
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem;
+      }
+
+      .card-title {
+        color: var(--dark-color);
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+
+      .model-comparison-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        text-align: center;
+        transition: transform 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .model-comparison-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+      }
+
+      .model-comparison-card.ppo::before {
+        background: #2563eb;
+      }
+      .model-comparison-card.cvar::before {
+        background: #059669;
+      }
+      .model-comparison-card.sortino::before {
+        background: #7c3aed;
+      }
+
+      .model-comparison-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .model-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+
+      .ppo .model-icon {
+        color: #2563eb;
+      }
+      .cvar .model-icon {
+        color: #059669;
+      }
+      .sortino .model-icon {
+        color: #7c3aed;
+      }
+
+      .metric-comparison {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+      }
+
+      .metric-item {
+        background: var(--light-color);
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: block;
+      }
+
+      .metric-label {
+        color: var(--secondary-color);
+        font-size: 0.9rem;
+      }
+
+      .btn-primary {
+        background: var(--primary-color);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary:hover {
+        background: #b91c1c;
+        transform: translateY(-2px);
+      }
+
+      .form-control {
+        border-radius: 10px;
+        border: 2px solid var(--border-color);
+        padding: 0.75rem;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+      }
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--border-color);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            margin: 0;
+        100% {
+          transform: rotate(360deg);
         }
+      }
 
-        .main-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            margin: 20px;
-            overflow: hidden;
-        }
+      .comparison-results {
+        margin-top: 3rem;
+      }
 
-        .header {
-            background: linear-gradient(135deg, var(--primary-color), #b91c1c);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            position: relative;
-        }
+      .results-table {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
 
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+      .results-table th {
+        background: var(--dark-color);
+        color: white;
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+      }
 
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin: 0;
-        }
+      .results-table td {
+        padding: 1rem;
+        text-align: center;
+        border-bottom: 1px solid var(--border-color);
+      }
 
-        .model-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            margin-top: 1rem;
-        }
+      .results-table tr:nth-child(even) {
+        background: var(--light-color);
+      }
 
-        .nav-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 2rem;
-        }
+      .best-performance {
+        background: rgba(16, 185, 129, 0.1) !important;
+        font-weight: 700;
+      }
 
-        .nav-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 10px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+      .footer {
+        background: var(--dark-color);
+        color: white;
+        text-align: center;
+        padding: 2rem;
+        margin-top: 2rem;
+      }
 
-        .nav-btn:hover {
-            background: #b91c1c;
-            transform: translateY(-2px);
-            color: white;
-            text-decoration: none;
-        }
+      .model-legend {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin: 2rem 0;
+      }
 
-        .content-section {
-            padding: 2rem;
-        }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+      }
 
-        .card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: none;
-            margin-bottom: 2rem;
-            overflow: hidden;
-        }
-
-        .card-header {
-            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.5rem;
-        }
-
-        .card-title {
-            color: var(--dark-color);
-            font-weight: 600;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .comparison-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .model-comparison-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            text-align: center;
-            transition: transform 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .model-comparison-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-        }
-
-        .model-comparison-card.ppo::before { background: #2563eb; }
-        .model-comparison-card.cvar::before { background: #059669; }
-        .model-comparison-card.sortino::before { background: #7c3aed; }
-
-        .model-comparison-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .model-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .ppo .model-icon { color: #2563eb; }
-        .cvar .model-icon { color: #059669; }
-        .sortino .model-icon { color: #7c3aed; }
-
-        .metric-comparison {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-
-        .metric-item {
-            background: var(--light-color);
-            padding: 1rem;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            display: block;
-        }
-
-        .metric-label {
-            color: var(--secondary-color);
-            font-size: 0.9rem;
-        }
-
-        .btn-primary {
-            background: var(--primary-color);
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background: #b91c1c;
-            transform: translateY(-2px);
-        }
-
-        .form-control {
-            border-radius: 10px;
-            border: 2px solid var(--border-color);
-            padding: 0.75rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--border-color);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .comparison-results {
-            margin-top: 3rem;
-        }
-
-        .results-table {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .results-table th {
-            background: var(--dark-color);
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .results-table td {
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .results-table tr:nth-child(even) {
-            background: var(--light-color);
-        }
-
-        .best-performance {
-            background: rgba(16, 185, 129, 0.1) !important;
-            font-weight: 700;
-        }
-
-        .footer {
-            background: var(--dark-color);
-            color: white;
-            text-align: center;
-            padding: 2rem;
-            margin-top: 2rem;
-        }
-
-        .model-legend {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-            margin: 2rem 0;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 2px;
-        }
+      .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+      }
     </style>
-</head>
-<body>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+  </head>
+  <body>
     <div class="main-container">
-        <!-- Header -->
-        <div class="header">
-            <h1><i class="fas fa-balance-scale"></i> So sánh Mô hình</h1>
-            <p>So sánh chiến lược giao dịch RL trung lập rủi ro và nhạy cảm với rủi ro</p>
-            <div class="model-badge">
-                <i class="fas fa-balance-scale"></i> PPO vs CVaR-PPO vs Sortino-PPO
+      <!-- Header -->
+      <div class="header">
+        <h1><i class="fas fa-balance-scale"></i> So sánh chiến lược</h1>
+        <p>
+          So sánh chiến lược giao dịch RL trung lập rủi ro và nhạy cảm với rủi
+          ro
+        </p>
+        <div class="model-badge">
+          <i class="fas fa-balance-scale"></i> PPO vs CVaR-PPO vs Sortino-PPO
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="text-center py-3 bg-light">
+        <a href="/" class="nav-btn"> <i class="fas fa-home"></i> Trang chủ </a>
+        <a href="/dashboard" class="nav-btn">
+          <i class="fas fa-tachometer-alt"></i> Bảng điều khiển
+        </a>
+        <a href="/ppo" class="nav-btn" style="background: #2563eb">
+          <i class="fas fa-brain"></i> PPO
+        </a>
+        <a href="/cvar" class="nav-btn" style="background: #059669">
+          <i class="fas fa-shield-alt"></i> CVaR-PPO
+        </a>
+        <a href="/sortino" class="nav-btn" style="background: #7c3aed">
+          <i class="fas fa-chart-line"></i> Sortino-PPO
+        </a>
+        <a href="/compare" class="nav-btn active">
+          <i class="fas fa-balance-scale"></i> So sánh mô hình
+        </a>
+      </div>
+
+      <!-- Content -->
+      <div class="content-section">
+        <!-- Model Overview Cards -->
+        <div class="comparison-grid">
+          <div class="model-comparison-card ppo">
+            <div class="model-icon">
+              <i class="fas fa-brain"></i>
             </div>
+            <h4>PPO (Trung lập rủi ro)</h4>
+            <p>
+              Mô hình cơ sở tối đa hóa lợi nhuận kỳ vọng mà không có quản trị
+              rủi ro rõ ràng.
+            </p>
+            <div class="mt-3">
+              <small class="text-muted">
+                <i class="fas fa-chart-line"></i> Trọng tâm: Lợi nhuận kỳ
+                vọng<br />
+                <i class="fas fa-exclamation-triangle"></i> Rủi ro: Độ lệch
+                chuẩn
+              </small>
+            </div>
+          </div>
+
+          <div class="model-comparison-card cvar">
+            <div class="model-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h4>CVaR-PPO (Nhạy cảm với rủi ro)</h4>
+            <p>
+              Cách tiếp cận nhạy cảm với rủi ro, dùng ràng buộc CVaR để quản lý
+              rủi ro đuôi.
+            </p>
+            <div class="mt-3">
+              <small class="text-muted">
+                <i class="fas fa-shield-alt"></i> Trọng tâm: Bảo vệ khi thị
+                trường giảm<br />
+                <i class="fas fa-chart-area"></i> Rủi ro: Rủi ro đuôi (15%)
+              </small>
+            </div>
+          </div>
+
+          <div class="model-comparison-card sortino">
+            <div class="model-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h4>Sortino-PPO (Điều chỉnh theo rủi ro)</h4>
+            <p>
+              Cách tiếp cận điều chỉnh theo rủi ro, tập trung vào biến động giảm
+              giá.
+            </p>
+            <div class="mt-3">
+              <small class="text-muted">
+                <i class="fas fa-target"></i> Trọng tâm: Lợi nhuận điều chỉnh
+                theo rủi ro<br />
+                <i class="fas fa-balance-scale"></i> Rủi ro: Độ lệch giảm giá
+              </small>
+            </div>
+          </div>
         </div>
 
-        <!-- Navigation -->
-        <div class="text-center py-3 bg-light">
-            <a href="/" class="nav-btn">
-                <i class="fas fa-home"></i> Trang chủ
-            </a>
-            <a href="/dashboard" class="nav-btn">
-                <i class="fas fa-tachometer-alt"></i> Bảng điều khiển
-            </a>
-            <a href="/ppo" class="nav-btn" style="background: #2563eb;">
-                <i class="fas fa-brain"></i> PPO
-            </a>
-            <a href="/cvar" class="nav-btn" style="background: #059669;">
-                <i class="fas fa-shield-alt"></i> CVaR-PPO
-            </a>
-            <a href="/sortino" class="nav-btn" style="background: #7c3aed;">
-                <i class="fas fa-chart-line"></i> Sortino-PPO
-            </a>
+        <!-- Comparison Form -->
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">
+                  <i class="fas fa-chart-bar"></i> Chạy So sánh Mô hình
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info">
+                  <h6><i class="fas fa-info-circle"></i> Tổng quan so sánh:</h6>
+                  <p class="mb-0">
+                    Phân tích này so sánh cả ba mô hình trên cùng một bộ dữ liệu
+                    thị trường. Bạn sẽ thấy các cách tiếp cận trung lập rủi ro,
+                    nhạy cảm với rủi ro và điều chỉnh theo rủi ro hoạt động khác
+                    nhau như thế nào.
+                  </p>
+                </div>
+
+                <form id="comparisonForm" method="post">
+                  {% csrf_token %}
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group mb-3">
+                        <label for="comparisonSymbol" class="form-label">
+                          <i class="fas fa-search"></i> Mã Chứng khoán
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="comparisonSymbol"
+                          value="SPY"
+                          readonly
+                        />
+                        <small class="text-muted"
+                          >SPY trùng với dữ liệu huấn luyện</small
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group mb-3">
+                        <label
+                          for="comparisonInitialBalance"
+                          class="form-label"
+                        >
+                          <i class="fas fa-dollar-sign"></i> Vốn ban đầu ($)
+                        </label>
+                        <input
+                          type="number"
+                          class="form-control"
+                          id="comparisonInitialBalance"
+                          value="10000"
+                        />
+                        <small class="text-muted">Mặc định: $10,000</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group mb-3">
+                        <label for="comparisonStartDate" class="form-label">
+                          <i class="fas fa-calendar-alt"></i> Ngày bắt đầu
+                        </label>
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="comparisonStartDate"
+                          value="2023-01-01"
+                        />
+                        <small class="text-muted"
+                          >Sau giai đoạn huấn luyện (sau tháng 01/2022)</small
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group mb-3">
+                        <label for="comparisonEndDate" class="form-label">
+                          <i class="fas fa-calendar-alt"></i> Ngày kết thúc
+                        </label>
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="comparisonEndDate"
+                          value="2024-12-31"
+                        />
+                        <small class="text-muted"
+                          >Giai đoạn kiểm thử để so sánh</small
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                      <i class="fas fa-play"></i> Chạy So sánh Mô hình
+                    </button>
+                  </div>
+                </form>
+                <div
+                  id="cmpError"
+                  class="alert alert-danger"
+                  style="display: none; margin-top: 1rem"
+                ></div>
+
+                <!-- Loading -->
+                <div id="comparisonLoading" class="loading">
+                  <div class="spinner"></div>
+                  <p>Đang chạy phân tích so sánh mô hình...</p>
+                  <small class="text-muted"
+                    >Có thể mất 1-2 phút vì hệ thống kiểm tra lại tất cả mô
+                    hình</small
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Content -->
-        <div class="content-section">
-            <!-- Model Overview Cards -->
-            <div class="comparison-grid">
-                <div class="model-comparison-card ppo">
-                    <div class="model-icon">
-                        <i class="fas fa-brain"></i>
-                    </div>
-                    <h4>PPO (Trung lập rủi ro)</h4>
-                    <p>Mô hình cơ sở tối đa hóa lợi nhuận kỳ vọng mà không có quản trị rủi ro rõ ràng.</p>
-                    <div class="mt-3">
-                        <small class="text-muted">
-                            <i class="fas fa-chart-line"></i> Trọng tâm: Lợi nhuận kỳ vọng<br>
-                            <i class="fas fa-exclamation-triangle"></i> Rủi ro: Độ lệch chuẩn
-                        </small>
-                    </div>
-                </div>
+        <!-- Comparison Results -->
+        <div
+          id="comparisonResults"
+          class="comparison-results"
+          style="display: none"
+        >
+          <div class="row">
+            <div class="col-12">
+              <h3 class="text-center mb-4">Kết quả So sánh Mô hình</h3>
 
-                <div class="model-comparison-card cvar">
-                    <div class="model-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h4>CVaR-PPO (Nhạy cảm với rủi ro)</h4>
-                    <p>Cách tiếp cận nhạy cảm với rủi ro, dùng ràng buộc CVaR để quản lý rủi ro đuôi.</p>
-                    <div class="mt-3">
-                        <small class="text-muted">
-                            <i class="fas fa-shield-alt"></i> Trọng tâm: Bảo vệ khi thị trường giảm<br>
-                            <i class="fas fa-chart-area"></i> Rủi ro: Rủi ro đuôi (15%)
-                        </small>
-                    </div>
-                </div>
+              <!-- Quick Summary -->
+              <div id="comparisonSummary" class="comparison-summary-grid"></div>
 
-                <div class="model-comparison-card sortino">
-                    <div class="model-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h4>Sortino-PPO (Điều chỉnh theo rủi ro)</h4>
-                    <p>Cách tiếp cận điều chỉnh theo rủi ro, tập trung vào biến động giảm giá.</p>
-                    <div class="mt-3">
-                        <small class="text-muted">
-                            <i class="fas fa-target"></i> Trọng tâm: Lợi nhuận điều chỉnh theo rủi ro<br>
-                            <i class="fas fa-balance-scale"></i> Rủi ro: Độ lệch giảm giá
-                        </small>
-                    </div>
+              <!-- Performance Chart -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line"></i> So sánh Hiệu suất Danh mục
+                  </h5>
                 </div>
-            </div>
+                <div class="card-body">
+                  <div id="comparisonChart" style="height: 500px"></div>
+                  <div class="model-legend">
+                    <div class="legend-item">
+                      <div
+                        class="legend-color"
+                        style="background: #2563eb"
+                      ></div>
+                      <span>PPO (Trung lập rủi ro)</span>
+                    </div>
+                    <div class="legend-item">
+                      <div
+                        class="legend-color"
+                        style="background: #059669"
+                      ></div>
+                      <span>CVaR-PPO (Nhạy cảm với rủi ro)</span>
+                    </div>
+                    <div class="legend-item">
+                      <div
+                        class="legend-color"
+                        style="background: #7c3aed"
+                      ></div>
+                      <span>Sortino-PPO (Điều chỉnh theo rủi ro)</span>
+                    </div>
+                    <div class="legend-item">
+                      <div
+                        class="legend-color"
+                        style="background: #6b7280"
+                      ></div>
+                      <span>Mua và Giữ (Chuẩn so sánh)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-            <!-- Comparison Form -->
-            <div class="row">
+              <!-- Metrics Table -->
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-table"></i> So sánh chỉ số hiệu suất
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="results-table w-100">
+                      <thead>
+                        <tr>
+                          <th>Mô hình</th>
+                          <th>Total Return (%)</th>
+                          <th>Sharpe Ratio</th>
+                          <th>Max Drawdown (%)</th>
+                          <th>Volatility</th>
+                          <th>Win Rate (%)</th>
+                          <th>Final Portfolio Value</th>
+                          <th>Number of Trades</th>
+                        </tr>
+                      </thead>
+                      <tbody id="metricsTableBody">
+                        <!-- Kết quả sẽ được hiển thị tại đây -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Analysis Summary -->
+              <div class="row mt-4">
                 <div class="col-lg-10 mx-auto">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">
-                                <i class="fas fa-chart-bar"></i> Chạy So sánh Mô hình
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="alert alert-info">
-                                <h6><i class="fas fa-info-circle"></i> Tổng quan so sánh:</h6>
-                                <p class="mb-0">
-                                    Phân tích này so sánh cả ba mô hình trên cùng một bộ dữ liệu thị trường.
-                                    Bạn sẽ thấy các cách tiếp cận trung lập rủi ro, nhạy cảm với rủi ro và điều chỉnh theo rủi ro hoạt động khác nhau như thế nào.
-                                </p>
-                            </div>
-
-                            <form id="comparisonForm">
-                                {% csrf_token %}
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="comparisonSymbol" class="form-label">
-                                                <i class="fas fa-search"></i> Mã Chứng khoán
-                                            </label>
-                                            <input type="text" class="form-control" id="comparisonSymbol" value="SPY" readonly>
-                                            <small class="text-muted">SPY trùng với dữ liệu huấn luyện</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="comparisonInitialBalance" class="form-label">
-                                                <i class="fas fa-dollar-sign"></i> Vốn ban đầu ($)
-                                            </label>
-                                            <input type="number" class="form-control" id="comparisonInitialBalance" value="10000">
-                                            <small class="text-muted">Mặc định: $10,000</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="comparisonStartDate" class="form-label">
-                                                <i class="fas fa-calendar-alt"></i> Ngày bắt đầu
-                                            </label>
-                                            <input type="date" class="form-control" id="comparisonStartDate" value="2023-01-01">
-                                            <small class="text-muted">Sau giai đoạn huấn luyện (sau tháng 01/2022)</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="comparisonEndDate" class="form-label">
-                                                <i class="fas fa-calendar-alt"></i> Ngày kết thúc
-                                            </label>
-                                            <input type="date" class="form-control" id="comparisonEndDate" value="2024-12-31">
-                                            <small class="text-muted">Giai đoạn kiểm thử để so sánh</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="text-center">
-                                    <button type="submit" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-play"></i> Chạy So sánh Mô hình
-                                    </button>
-                                </div>
-                            </form>
-
-                            <!-- Loading -->
-                            <div id="comparisonLoading" class="loading">
-                                <div class="spinner"></div>
-                                <p>Đang chạy phân tích so sánh mô hình...</p>
-                                <small class="text-muted">Có thể mất 1-2 phút vì hệ thống kiểm tra lại tất cả mô hình</small>
-                            </div>
-                        </div>
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="card-title">
+                        <i class="fas fa-lightbulb"></i> Tóm tắt phân tích
+                      </h5>
                     </div>
-                </div>
-            </div>
-
-            <!-- Comparison Results -->
-            <div id="comparisonResults" class="comparison-results" style="display: none;">
-                <div class="row">
-                    <div class="col-12">
-                        <h3 class="text-center mb-4">Kết quả So sánh Mô hình</h3>
-
-                        <!-- Performance Chart -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-chart-line"></i> So sánh Hiệu suất Danh mục
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="comparisonChart" style="height: 500px;"></div>
-                                <div class="model-legend">
-                                    <div class="legend-item">
-                                        <div class="legend-color" style="background: #2563eb;"></div>
-                                        <span>PPO (Trung lập rủi ro)</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <div class="legend-color" style="background: #059669;"></div>
-                                        <span>CVaR-PPO (Nhạy cảm với rủi ro)</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <div class="legend-color" style="background: #7c3aed;"></div>
-                                        <span>Sortino-PPO (Điều chỉnh theo rủi ro)</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <div class="legend-color" style="background: #6b7280;"></div>
-                                        <span>Mua và Giữ (Chuẩn so sánh)</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <h6>Trung lập rủi ro (PPO)</h6>
+                          <p>
+                            Tối đa hóa lợi nhuận kỳ vọng nhưng có thể trải qua
+                            biến động cao hơn và giảm giá trong điều kiện thị
+                            trường bất lợi.
+                          </p>
                         </div>
-
-                        <!-- Metrics Table -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-table"></i> So sánh chỉ số hiệu suất
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="results-table w-100">
-                                        <thead>
-                                            <tr>
-                                                <th>Mô hình</th>
-                                                <th>Giá trị cuối kỳ</th>
-                                                <th>Tổng lợi nhuận</th>
-                                                <th>Tỷ lệ Sharpe</th>
-                                                <th>Tỷ lệ Sortino</th>
-                                                <th>Mức sụt giảm tối đa</th>
-                                                <th>Tỷ lệ thắng</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="metricsTableBody">
-                                            <!-- Kết quả sẽ được hiển thị tại đây -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                        <div class="col-md-6">
+                          <h6>Các cách tiếp cận có xét rủi ro</h6>
+                          <p>
+                            CVaR-PPO và Sortino-PPO tập trung vào quản trị rủi
+                            ro, có thể đánh đổi một phần lợi nhuận để tăng khả
+                            năng bảo vệ khi thị trường giảm.
+                          </p>
                         </div>
-
-                        <!-- Analysis Summary -->
-                        <div class="row mt-4">
-                            <div class="col-lg-10 mx-auto">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">
-                                            <i class="fas fa-lightbulb"></i> Tóm tắt phân tích
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <h6>Trung lập rủi ro (PPO)</h6>
-                                                <p>Tối đa hóa lợi nhuận kỳ vọng nhưng có thể trải qua biến động cao hơn và giảm giá trong điều kiện thị trường bất lợi.</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <h6>Các cách tiếp cận có xét rủi ro</h6>
-                                                <p>CVaR-PPO và Sortino-PPO tập trung vào quản trị rủi ro, có thể đánh đổi một phần lợi nhuận để tăng khả năng bảo vệ khi thị trường giảm.</p>
-                                            </div>
-                                        </div>
-                                        <div class="alert alert-info mt-3">
-                                            <h6><i class="fas fa-exclamation-triangle"></i> Những hiểu biết chính:</h6>
-                                            <ul class="mb-0">
-                                                <li><strong>Cân bằng rủi ro-lợi nhuận:</strong> Các mô hình có xét rủi ro thường thể hiện hành vi thận trọng hơn</li>
-                                                <li><strong>Điều kiện thị trường:</strong> Hiệu suất có thể thay đổi rõ rệt giữa thị trường tăng và giảm</li>
-                                                <li><strong>Chỉ số rủi ro:</strong> Mỗi mô hình phù hợp với một cách đo rủi ro khác nhau</li>
-                                                <li><strong>Lựa chọn chiến lược:</strong> Cần dựa trên mức chịu rủi ro và mục tiêu đầu tư giả định</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                      </div>
+                      <div class="alert alert-info mt-3">
+                        <h6>
+                          <i class="fas fa-exclamation-triangle"></i> Những hiểu
+                          biết chính:
+                        </h6>
+                        <ul class="mb-0">
+                          <li>
+                            <strong>Cân bằng rủi ro-lợi nhuận:</strong> Các mô
+                            hình có xét rủi ro thường thể hiện hành vi thận
+                            trọng hơn
+                          </li>
+                          <li>
+                            <strong>Điều kiện thị trường:</strong> Hiệu suất có
+                            thể thay đổi rõ rệt giữa thị trường tăng và giảm
+                          </li>
+                          <li>
+                            <strong>Chỉ số rủi ro:</strong> Mỗi mô hình phù hợp
+                            với một cách đo rủi ro khác nhau
+                          </li>
+                          <li>
+                            <strong>Lựa chọn chiến lược:</strong> Cần dựa trên
+                            mức chịu rủi ro và mục tiêu đầu tư giả định
+                          </li>
+                        </ul>
+                      </div>
                     </div>
+                  </div>
                 </div>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            <p>Nền tảng giao dịch RL nhạy cảm với rủi ro | Xây dựng bằng PyTorch & Django | Chỉ dành cho mục đích học tập</p>
-            <p><small>© 2026 - So sánh mô hình: Giao dịch RL trung lập rủi ro và nhạy cảm với rủi ro</small></p>
-        </div>
+      <!-- Footer -->
+      <div class="footer">
+        <p>
+          Nền tảng giao dịch RL nhạy cảm với rủi ro | Xây dựng bằng PyTorch &
+          Django | Chỉ dành cho mục đích học tập
+        </p>
+        <p>
+          <small
+            >© 2026 - So sánh mô hình: Giao dịch RL trung lập rủi ro và nhạy cảm
+            với rủi ro</small
+          >
+        </p>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/main.js' %}"></script>
     <script>
-        // Get CSRF token from cookie
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
+      // Get CSRF token from cookie
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1),
+              );
+              break;
             }
-            return cookieValue;
+          }
         }
+        return cookieValue;
+      }
 
-        // Model Comparison functionality
-        document.getElementById('comparisonForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+      // Model Comparison functionality
+      document
+        .getElementById("comparisonForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
 
-            const formData = {
-                symbol: document.getElementById('comparisonSymbol').value,
-                start_date: document.getElementById('comparisonStartDate').value,
-                end_date: document.getElementById('comparisonEndDate').value,
-                initial_balance: parseFloat(document.getElementById('comparisonInitialBalance').value)
-            };
+          const formData = {
+            symbol: document.getElementById("comparisonSymbol").value,
+            start_date: document.getElementById("comparisonStartDate").value,
+            end_date: document.getElementById("comparisonEndDate").value,
+            initial_balance: parseFloat(
+              document.getElementById("comparisonInitialBalance").value,
+            ),
+          };
 
-            const loading = document.getElementById('comparisonLoading');
-            const results = document.getElementById('comparisonResults');
+          const loading = document.getElementById("comparisonLoading");
+          const results = document.getElementById("comparisonResults");
 
-            loading.style.display = 'block';
-            results.style.display = 'none';
+          loading.style.display = "block";
+          results.style.display = "none";
 
-            try {
-                const response = await fetch('/api/compare_models/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify(formData)
-                });
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
+          try {
+            const response = await fetch("/api/compare_models/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+              },
+              body: JSON.stringify(formData),
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (data.success) {
-                    displayComparisonResults(data.results, data.data_info);
-                    results.style.display = 'block';
-                } else {
-                    alert('Lỗi: ' + (data.error || 'Lỗi không xác định'));
-                }
-            } catch (error) {
-                alert('Lỗi khi chạy so sánh: ' + error.message);
+            if (data.success && data.results && data.data_info) {
+              displayComparisonResults(data.results, data.data_info);
+              results.style.display = "block";
+            } else if (data.success && data.comparison) {
+              displayPrecomputedComparison(data.comparison);
+              results.style.display = "block";
+            } else {
+              const cmpErr = document.getElementById("cmpError");
+              cmpErr.textContent =
+                "Lỗi: " + (data.error || "Lỗi không xác định");
+              cmpErr.style.display = "block";
             }
+          } catch (error) {
+            const cmpErr = document.getElementById("cmpError");
+            cmpErr.textContent = "Lỗi khi chạy so sánh: " + error.message;
+            cmpErr.style.display = "block";
+          }
 
-            loading.style.display = 'none';
+          loading.style.display = "none";
         });
 
-        function displayComparisonResults(results, dataInfo) {
-            // Create comparison chart
-            const chartData = [];
+      const comparisonModelMeta = {
+        PPO: { label: "PPO (Trung lập rủi ro)", color: "#2563eb" },
+        "CVaR-PPO": {
+          label: "CVaR-PPO (Nhạy cảm với rủi ro)",
+          color: "#059669",
+        },
+        "Sortino-PPO": {
+          label: "Sortino-PPO (Điều chỉnh theo rủi ro)",
+          color: "#7c3aed",
+        },
+        "Buy & Hold": { label: "Mua và Giữ (Chuẩn so sánh)", color: "#6b7280" },
+        buy_hold: { label: "Mua và Giữ (Chuẩn so sánh)", color: "#6b7280" },
+      };
 
-            if (results.ppo && results.ppo.portfolio_values) {
-                chartData.push({
-                    x: results.ppo.portfolio_values.map((_, i) => i),
-                    y: results.ppo.portfolio_values,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'PPO (Trung lập rủi ro)',
-                    line: {color: '#2563eb', width: 3}
-                });
-            }
+      function asMetricRows(testResults) {
+        if (!testResults) return [];
 
-            if (results.cvar && results.cvar.portfolio_values) {
-                chartData.push({
-                    x: results.cvar.portfolio_values.map((_, i) => i),
-                    y: results.cvar.portfolio_values,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'CVaR-PPO (Nhạy cảm với rủi ro)',
-                    line: {color: '#059669', width: 3}
-                });
-            }
+        return Object.entries(testResults)
+          .filter(([, metrics]) => metrics && typeof metrics === "object")
+          .map(([name, metrics]) => ({
+            name,
+            label: (comparisonModelMeta[name] || {}).label || name,
+            color: (comparisonModelMeta[name] || {}).color || "#111827",
+            data: metrics,
+          }));
+      }
 
-            if (results.sortino && results.sortino.portfolio_values) {
-                chartData.push({
-                    x: results.sortino.portfolio_values.map((_, i) => i),
-                    y: results.sortino.portfolio_values,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'Sortino-PPO (Điều chỉnh theo rủi ro)',
-                    line: {color: '#7c3aed', width: 3}
-                });
-            }
-
-            if (results.buy_hold && results.buy_hold.portfolio_values) {
-                chartData.push({
-                    x: results.buy_hold.portfolio_values.map((_, i) => i),
-                    y: results.buy_hold.portfolio_values,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'Mua và Giữ (Chuẩn so sánh)',
-                    line: {color: '#6b7280', width: 2, dash: 'dot'}
-                });
-            }
-
-            const layout = {
-                title: `So sánh mô hình: ${dataInfo.symbol} (${dataInfo.start_date} đến ${dataInfo.end_date})`,
-                xaxis: {title: 'Ngày giao dịch'},
-                yaxis: {title: 'Giá trị danh mục ($)'},
-                showlegend: true,
-                legend: {x: 0, y: 1}
-            };
-
-            Plotly.newPlot('comparisonChart', chartData, layout);
-
-            // Populate metrics table
-            const tableBody = document.getElementById('metricsTableBody');
-            tableBody.innerHTML = '';
-
-            const models = [
-                {name: 'PPO (Trung lập rủi ro)', data: results.ppo, color: '#2563eb'},
-                {name: 'CVaR-PPO (Nhạy cảm với rủi ro)', data: results.cvar, color: '#059669'},
-                {name: 'Sortino-PPO (Điều chỉnh theo rủi ro)', data: results.sortino, color: '#7c3aed'},
-                {name: 'Mua và Giữ (Chuẩn so sánh)', data: results.buy_hold, color: '#6b7280'}
-            ];
-
-            models.forEach(model => {
-                if (model.data) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><strong style="color: ${model.color}">${model.name}</strong></td>
-                        <td>${(model.data.final_balance !== undefined ? '$' + model.data.final_balance.toFixed(2) : 'Không có dữ liệu')}</td>
-                        <td>${(model.data.total_return !== undefined ? model.data.total_return.toFixed(2) + '%' : 'Không có dữ liệu')}</td>
-                        <td>${(model.data.sharpe_ratio !== undefined ? model.data.sharpe_ratio.toFixed(2) : 'Không có dữ liệu')}</td>
-                        <td>${((model.data.sortino_ratio || model.data.sharpe_ratio) !== undefined ? (model.data.sortino_ratio || model.data.sharpe_ratio).toFixed(2) : 'Không có dữ liệu')}</td>
-                        <td>${(model.data.max_drawdown !== undefined ? model.data.max_drawdown.toFixed(2) + '%' : 'Không có dữ liệu')}</td>
-                        <td>${(model.data.win_rate || 0).toFixed(1)}%</td>
-                    `;
-                    tableBody.appendChild(row);
-                }
-            });
+      function metricValue(metrics, keys) {
+        for (const key of keys) {
+          if (
+            metrics[key] !== undefined &&
+            metrics[key] !== null &&
+            Number.isFinite(Number(metrics[key]))
+          ) {
+            return Number(metrics[key]);
+          }
         }
+        return null;
+      }
+
+      function formatPercent(value) {
+        if (value === null || value === undefined) return "Không có dữ liệu";
+        const displayValue = Math.abs(value) <= 1 ? value * 100 : value;
+        return `${displayValue.toFixed(2)}%`;
+      }
+
+      function formatNumber(value) {
+        return value === null || value === undefined
+          ? "Không có dữ liệu"
+          : value.toFixed(2);
+      }
+
+      function formatMoney(value) {
+        return value === null || value === undefined
+          ? "Không có dữ liệu"
+          : `$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+      }
+
+      function bestBy(rows, keys, compareFn) {
+        const scoredRows = rows
+          .map((row) => ({ ...row, value: metricValue(row.data, keys) }))
+          .filter((row) => row.value !== null);
+
+        if (!scoredRows.length) return null;
+        return scoredRows.reduce(
+          (best, row) => (compareFn(row.value, best.value) ? row : best),
+          scoredRows[0],
+        );
+      }
+
+      function renderComparisonSummary(rows) {
+        const summary = document.getElementById("comparisonSummary");
+        if (!summary) return;
+
+        const bestReturn = bestBy(
+          rows,
+          ["total_return"],
+          (value, best) => value > best,
+        );
+        const bestSharpe = bestBy(
+          rows,
+          ["sharpe_ratio", "sharpe"],
+          (value, best) => value > best,
+        );
+        const lowestDrawdown = bestBy(
+          rows,
+          ["max_drawdown"],
+          (value, best) => value > best,
+        );
+        const bestWinRate = bestBy(
+          rows,
+          ["win_rate"],
+          (value, best) => value > best,
+        );
+
+        const cards = [
+          {
+            title: "Lợi nhuận tốt nhất",
+            item: bestReturn,
+            value: bestReturn
+              ? formatPercent(bestReturn.value)
+              : "Không có dữ liệu",
+            icon: "fa-arrow-trend-up",
+          },
+          {
+            title: "Sharpe tốt nhất",
+            item: bestSharpe,
+            value: bestSharpe
+              ? formatNumber(bestSharpe.value)
+              : "Không có dữ liệu",
+            icon: "fa-chart-line",
+          },
+          {
+            title: "Drawdown thấp nhất",
+            item: lowestDrawdown,
+            value: lowestDrawdown
+              ? formatPercent(lowestDrawdown.value)
+              : "Không có dữ liệu",
+            icon: "fa-shield-alt",
+          },
+          {
+            title: "Win Rate tốt nhất",
+            item: bestWinRate,
+            value: bestWinRate
+              ? formatPercent(bestWinRate.value)
+              : "Không có dữ liệu",
+            icon: "fa-check-circle",
+          },
+        ];
+
+        summary.innerHTML = cards
+          .map(
+            (card) => `
+                <div class="summary-card">
+                    <div class="summary-icon"><i class="fas ${card.icon}"></i></div>
+                    <div>
+                        <p>${card.title}</p>
+                        <strong>${card.item ? card.item.label : "Chưa có dữ liệu"}</strong>
+                        <span>${card.value}</span>
+                    </div>
+                </div>
+            `,
+          )
+          .join("");
+      }
+
+      function renderMetricsTable(rows) {
+        const tableBody = document.getElementById("metricsTableBody");
+        tableBody.innerHTML = "";
+
+        rows.forEach((rowData) => {
+          const metrics = rowData.data;
+          const row = document.createElement("tr");
+          const finalValue = metricValue(metrics, [
+            "final_balance",
+            "final_value",
+          ]);
+          const totalReturn = metricValue(metrics, ["total_return"]);
+          const sharpe = metricValue(metrics, ["sharpe_ratio", "sharpe"]);
+          const drawdown = metricValue(metrics, ["max_drawdown"]);
+          const volatility = metricValue(metrics, ["volatility"]);
+          const winRate = metricValue(metrics, ["win_rate"]);
+          const numTrades = metricValue(metrics, ["num_trades"]);
+
+          row.innerHTML = `
+                    <td><strong style="color: ${rowData.color}">${rowData.label}</strong></td>
+                    <td>${formatPercent(totalReturn)}</td>
+                    <td>${formatNumber(sharpe)}</td>
+                    <td>${formatPercent(drawdown)}</td>
+                    <td>${formatPercent(volatility)}</td>
+                    <td>${formatPercent(winRate)}</td>
+                    <td>${formatMoney(finalValue)}</td>
+                    <td>${numTrades !== null ? numTrades : "Không có dữ liệu"}</td>
+                `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      function displayPrecomputedComparison(comparison) {
+        const rows = asMetricRows(comparison.test_results);
+        renderComparisonSummary(rows);
+        renderMetricsTable(rows);
+
+        document.getElementById("comparisonChart").innerHTML = `
+                <div class="chart-empty-state">
+                    <i class="fas fa-table"></i>
+                    <p>Dữ liệu chuỗi danh mục chưa có trong API so sánh. Bạn vẫn có thể đánh giá mô hình bằng bảng metric tổng hợp.</p>
+                </div>
+            `;
+      }
+
+      function displayComparisonResults(results, dataInfo) {
+        // Create comparison chart
+        const chartData = [];
+
+        if (results.ppo && results.ppo.portfolio_values) {
+          chartData.push({
+            x: results.ppo.portfolio_values.map((_, i) => i),
+            y: results.ppo.portfolio_values,
+            type: "scatter",
+            mode: "lines",
+            name: "PPO (Trung lập rủi ro)",
+            line: { color: "#2563eb", width: 3 },
+          });
+        }
+
+        if (results.cvar && results.cvar.portfolio_values) {
+          chartData.push({
+            x: results.cvar.portfolio_values.map((_, i) => i),
+            y: results.cvar.portfolio_values,
+            type: "scatter",
+            mode: "lines",
+            name: "CVaR-PPO (Nhạy cảm với rủi ro)",
+            line: { color: "#059669", width: 3 },
+          });
+        }
+
+        if (results.sortino && results.sortino.portfolio_values) {
+          chartData.push({
+            x: results.sortino.portfolio_values.map((_, i) => i),
+            y: results.sortino.portfolio_values,
+            type: "scatter",
+            mode: "lines",
+            name: "Sortino-PPO (Điều chỉnh theo rủi ro)",
+            line: { color: "#7c3aed", width: 3 },
+          });
+        }
+
+        if (results.buy_hold && results.buy_hold.portfolio_values) {
+          chartData.push({
+            x: results.buy_hold.portfolio_values.map((_, i) => i),
+            y: results.buy_hold.portfolio_values,
+            type: "scatter",
+            mode: "lines",
+            name: "Mua và Giữ (Chuẩn so sánh)",
+            line: { color: "#6b7280", width: 2, dash: "dot" },
+          });
+        }
+
+        const layout = {
+          title: `So sánh mô hình: ${dataInfo.symbol} (${dataInfo.start_date} đến ${dataInfo.end_date})`,
+          xaxis: { title: "Ngày giao dịch" },
+          yaxis: { title: "Giá trị danh mục ($)" },
+          showlegend: true,
+          legend: { x: 0, y: 1 },
+        };
+
+        Plotly.newPlot("comparisonChart", chartData, layout);
+
+        // Populate metrics table
+        const models = [
+          {
+            name: "PPO (Trung lập rủi ro)",
+            data: results.ppo,
+            color: "#2563eb",
+          },
+          {
+            name: "CVaR-PPO (Nhạy cảm với rủi ro)",
+            data: results.cvar,
+            color: "#059669",
+          },
+          {
+            name: "Sortino-PPO (Điều chỉnh theo rủi ro)",
+            data: results.sortino,
+            color: "#7c3aed",
+          },
+          {
+            name: "Mua và Giữ (Chuẩn so sánh)",
+            data: results.buy_hold,
+            color: "#6b7280",
+          },
+        ];
+
+        renderComparisonSummary(
+          models
+            .filter((model) => model.data)
+            .map((model) => ({
+              label: model.name,
+              color: model.color,
+              data: model.data,
+            })),
+        );
+        renderMetricsTable(
+          models
+            .filter((model) => model.data)
+            .map((model) => ({
+              label: model.name,
+              color: model.color,
+              data: model.data,
+            })),
+        );
+      }
     </script>
-</body>
+  </body>
 </html>

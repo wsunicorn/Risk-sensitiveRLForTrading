@@ -2,352 +2,280 @@
 {% load static %}
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nền tảng giao dịch RL nhạy cảm với rủi ro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://img.icons8.com/color/48/000000/trading.png" type="image/png">
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --secondary-color: #475569;
-            --success-color: #059669;
-            --warning-color: #d97706;
-            --purple-color: #7c3aed;
-            --dark-color: #111827;
-            --light-color: #f8fafc;
-            --border-color: #e2e8f0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #e5edf7;
-            color: var(--dark-color);
-            margin: 0;
-        }
-
-        .main-container {
-            background: #ffffff;
-            min-height: 100vh;
-        }
-
-        .hero {
-            background: linear-gradient(135deg, #1e3a8a, #2563eb);
-            color: white;
-            padding: 4rem 2rem 3rem;
-        }
-
-        .hero-inner {
-            max-width: 1120px;
-            margin: 0 auto;
-        }
-
-        .hero-eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.85rem;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.14);
-            font-size: 0.9rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .hero h1 {
-            font-size: clamp(2rem, 5vw, 3.6rem);
-            font-weight: 700;
-            max-width: 850px;
-            margin-bottom: 1rem;
-        }
-
-        .hero-lead {
-            max-width: 780px;
-            font-size: 1.15rem;
-            line-height: 1.7;
-            opacity: 0.94;
-            margin-bottom: 2rem;
-        }
-
-        .hero-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .hero-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.55rem;
-            padding: 0.9rem 1.25rem;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            background: #ffffff;
-            color: #1e3a8a;
-        }
-
-        .hero-btn.secondary {
-            background: rgba(255, 255, 255, 0.12);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .section {
-            max-width: 1120px;
-            margin: 0 auto;
-            padding: 3.25rem 2rem;
-        }
-
-        .section-muted {
-            background: var(--light-color);
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .section-subtitle {
-            color: var(--secondary-color);
-            max-width: 760px;
-            margin-bottom: 1.75rem;
-        }
-
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 1rem;
-        }
-
-        .info-card {
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1.25rem;
-            min-height: 100%;
-        }
-
-        .info-card i {
-            font-size: 1.35rem;
-            color: var(--primary-color);
-            margin-bottom: 0.8rem;
-        }
-
-        .info-card h3,
-        .info-card h4 {
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 0.45rem;
-        }
-
-        .info-card p {
-            color: var(--secondary-color);
-            margin: 0;
-            line-height: 1.55;
-        }
-
-        .workflow {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 0.85rem;
-        }
-
-        .step-card {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1rem;
-            position: relative;
-        }
-
-        .step-number {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #dbeafe;
-            color: #1d4ed8;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-
-        .model-card.ppo { border-top: 4px solid var(--primary-color); }
-        .model-card.cvar { border-top: 4px solid var(--success-color); }
-        .model-card.sortino { border-top: 4px solid var(--purple-color); }
-
-        .usage-list {
-            display: grid;
-            gap: 0.85rem;
-            margin: 0;
-            padding: 0;
-            list-style: none;
-        }
-
-        .usage-list li {
-            display: flex;
-            gap: 0.85rem;
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1rem;
-        }
-
-        .usage-list span {
-            flex: 0 0 auto;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #ecfdf5;
-            color: #047857;
-            font-weight: 700;
-        }
-
-        .footer {
-            background: #111827;
-            color: white;
-            text-align: center;
-            padding: 1.5rem 1rem;
-        }
-
-        @media (max-width: 640px) {
-            .hero,
-            .section {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-
-            .hero-actions {
-                flex-direction: column;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nền tảng demo giao dịch bằng Risk-Sensitive RL</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://img.icons8.com/color/48/000000/trading.png" type="image/png">
+  <link href="{% static 'css/style.css' %}" rel="stylesheet">
 </head>
-<body>
-    <div class="main-container">
-        <header class="hero">
-            <div class="hero-inner">
-                <div class="hero-eyebrow">
-                    <i class="fas fa-graduation-cap"></i>
-                    Demo đồ án giao dịch định lượng
-                </div>
-                <h1>Học tăng cường nhạy cảm với rủi ro cho giao dịch</h1>
-                <p class="hero-lead">
-                    Hệ thống học chính sách giao dịch bằng học tăng cường để tạo tín hiệu Mua/Bán/Giữ.
-                    Demo này không dự đoán giá trực tiếp, mà đánh giá cách các mô hình ra quyết định trong môi trường giao dịch có chi phí và rủi ro.
-                </p>
-                <div class="hero-actions">
-                    <a href="/ppo" class="hero-btn">
-                        <i class="fas fa-bolt"></i> Dự đoán thời gian thực
-                    </a>
-                    <a href="/ppo" class="hero-btn secondary">
-                        <i class="fas fa-history"></i> Kiểm tra lại lịch sử
-                    </a>
-                    <a href="/compare" class="hero-btn secondary">
-                        <i class="fas fa-scale-balanced"></i> So sánh mô hình
-                    </a>
-                </div>
-            </div>
-        </header>
-
-        <section class="section">
-            <h2 class="section-title">Luồng hoạt động của hệ thống</h2>
-            <p class="section-subtitle">
-                Dữ liệu thị trường được chuyển thành trạng thái giao dịch, sau đó mô hình RL học chính sách để đưa ra hành động.
-            </p>
-            <div class="workflow">
-                <div class="step-card">
-                    <div class="step-number">1</div>
-                    <h3>Dữ liệu thị trường</h3>
-                    <p>Thu thập dữ liệu OHLCV của SPY từ Yahoo Finance.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">2</div>
-                    <h3>Chỉ báo kỹ thuật</h3>
-                    <p>Tạo các đặc trưng như SMA, RSI, MACD, Bollinger Bands và returns.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">3</div>
-                    <h3>Môi trường giao dịch</h3>
-                    <p>Mô phỏng danh mục với vốn ban đầu, phí giao dịch và trượt giá.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">4</div>
-                    <h3>Mô hình RL</h3>
-                    <p>PPO, CVaR-PPO và Sortino-PPO học chính sách hành động.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">5</div>
-                    <h3>Tín hiệu & backtest</h3>
-                    <p>Xuất tín hiệu Mua/Bán/Giữ và đánh giá bằng kiểm tra lại lịch sử.</p>
-                </div>
-            </div>
-        </section>
-
-        <div class="section-muted">
-            <section class="section">
-                <h2 class="section-title">Ba mô hình được so sánh</h2>
-                <p class="section-subtitle">
-                    Mỗi mô hình đại diện cho một cách cân bằng khác nhau giữa lợi nhuận kỳ vọng và rủi ro.
-                </p>
-                <div class="card-grid">
-                    <div class="info-card model-card ppo">
-                        <i class="fas fa-brain"></i>
-                        <h3>PPO</h3>
-                        <p>Trung lập rủi ro, tối ưu lợi nhuận kỳ vọng và dùng làm mô hình cơ sở.</p>
-                    </div>
-                    <div class="info-card model-card cvar">
-                        <i class="fas fa-shield-alt"></i>
-                        <h3>CVaR-PPO</h3>
-                        <p>Nhạy cảm với rủi ro, chú trọng rủi ro đuôi và các kịch bản lợi nhuận xấu.</p>
-                    </div>
-                    <div class="info-card model-card sortino">
-                        <i class="fas fa-chart-line"></i>
-                        <h3>Sortino-PPO</h3>
-                        <p>Điều chỉnh theo rủi ro, tập trung vào biến động bất lợi thay vì toàn bộ biến động.</p>
-                    </div>
-                </div>
-            </section>
+<body class="landing-page">
+  <main class="landing-shell">
+    <section class="landing-hero">
+      <div class="landing-container landing-hero-grid">
+        <div class="landing-hero-copy">
+          <span class="landing-badge">
+            <i class="fas fa-chart-line"></i>
+            Risk-Sensitive RL Lab
+          </span>
+          <h1>Nền tảng demo giao dịch bằng Risk-Sensitive RL</h1>
+          <p>
+            Hệ thống không dự đoán giá trực tiếp. Thay vào đó, mô hình học chính sách
+            giao dịch từ trạng thái thị trường và danh mục, sau đó sinh tín hiệu
+            Mua/Bán/Giữ để đánh giá bằng Backtest và các chỉ số rủi ro.
+          </p>
+          <div class="landing-actions">
+            <a href="/dashboard/" class="landing-primary-cta">
+              Mở Trading Lab
+              <i class="fas fa-arrow-right"></i>
+            </a>
+            <a href="#workflow" class="landing-secondary-link">Xem luồng hoạt động</a>
+          </div>
         </div>
 
-        <section class="section">
-            <h2 class="section-title">Cách sử dụng demo</h2>
-            <p class="section-subtitle">
-                Quy trình dưới đây giúp người mới bắt đầu kiểm tra nhanh các chức năng chính của web demo.
-            </p>
-            <ul class="usage-list">
-                <li>
-                    <span>1</span>
-                    <div><strong>Nhập mã cổ phiếu.</strong> Khuyến nghị dùng SPY vì đây là mã được dùng trong dữ liệu huấn luyện.</div>
-                </li>
-                <li>
-                    <span>2</span>
-                    <div><strong>Lấy tín hiệu Mua/Bán/Giữ.</strong> Tín hiệu thể hiện hành động chính sách, không phải dự báo giá.</div>
-                </li>
-                <li>
-                    <span>3</span>
-                    <div><strong>Chạy kiểm tra lại lịch sử.</strong> Quan sát giá trị danh mục trong một giai đoạn sau huấn luyện.</div>
-                </li>
-                <li>
-                    <span>4</span>
-                    <div><strong>So sánh bằng metric.</strong> Đánh giá bằng Tổng lợi nhuận, Sharpe, Sortino, Max Drawdown, Volatility và Win Rate.</div>
-                </li>
-            </ul>
-        </section>
+        <aside class="landing-hero-panel" aria-label="Tổng quan Policy Output">
+          <div class="panel-label">Policy Output</div>
+          <div class="action-scale">
+            <span>-1</span>
+            <div class="scale-track">
+              <div class="scale-fill"></div>
+            </div>
+            <span>+1</span>
+          </div>
+          <div class="signal-row">
+            <span class="signal sell">SELL</span>
+            <span class="signal hold">HOLD</span>
+            <span class="signal buy">BUY</span>
+          </div>
+          <p>
+            Policy không dự đoán giá ngày mai. Nó nhận OHLCV, chỉ báo kỹ thuật và
+            trạng thái danh mục để sinh hành động giao dịch.
+          </p>
+        </aside>
+      </div>
+    </section>
 
-        <footer class="footer">
-            <p class="mb-1">Nền tảng giao dịch RL nhạy cảm với rủi ro | Xây dựng bằng PyTorch & Django</p>
-            <small>Chỉ dành cho mục đích học tập và trình bày đồ án</small>
-        </footer>
-    </div>
+    <section class="landing-section" id="core-idea">
+      <div class="landing-container">
+        <div class="section-heading">
+          <span>Core Idea</span>
+          <h2>Ý tưởng cốt lõi: học chính sách, không dự đoán giá</h2>
+          <p>
+            Bài toán của project là so sánh cách các mô hình RL ra quyết định giao dịch
+            khi xét đến lợi nhuận và rủi ro. Đầu ra không phải giá cổ phiếu, mà là
+            hành động giao dịch.
+          </p>
+        </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <div class="landing-card-grid three">
+          <article class="landing-card">
+            <div class="card-kicker">01</div>
+            <h3>Trạng thái thị trường</h3>
+            <p>OHLCV, volume, technical indicators và thông tin danh mục.</p>
+          </article>
+          <article class="landing-card">
+            <div class="card-kicker">02</div>
+            <h3>Hành động từ policy</h3>
+            <p>Mạng policy sinh action liên tục trong khoảng [-1, 1].</p>
+          </article>
+          <article class="landing-card">
+            <div class="card-kicker">03</div>
+            <h3>Tín hiệu giao dịch</h3>
+            <p>Action được chuyển thành BUY, SELL hoặc HOLD để mô phỏng danh mục.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section landing-muted" id="workflow">
+      <div class="landing-container">
+        <div class="section-heading compact">
+          <span>Decision Pipeline</span>
+          <h2>Luồng hoạt động của hệ thống</h2>
+          <p>Từ dữ liệu thị trường đến tín hiệu giao dịch và đánh giá hiệu quả danh mục.</p>
+        </div>
+
+        <div class="workflow-grid">
+          <article class="workflow-step">
+            <span class="workflow-index">1</span>
+            <strong>Market Data</strong>
+            <p>Lấy dữ liệu OHLCV từ Yahoo Finance.</p>
+          </article>
+          <article class="workflow-step">
+            <span class="workflow-index">2</span>
+            <strong>Feature Engineering</strong>
+            <p>Tạo SMA, RSI, MACD, Bollinger Bands, returns...</p>
+          </article>
+          <article class="workflow-step">
+            <span class="workflow-index">3</span>
+            <strong>Normalization</strong>
+            <p>Chuẩn hóa đặc trưng bằng tham số từ tập train.</p>
+          </article>
+          <article class="workflow-step">
+            <span class="workflow-index">4</span>
+            <strong>RL Environment</strong>
+            <p>Mô phỏng vốn, vị thế, phí giao dịch và trượt giá.</p>
+          </article>
+          <article class="workflow-step">
+            <span class="workflow-index">5</span>
+            <strong>Policy Network</strong>
+            <p>PPO/CVaR-PPO/Sortino-PPO sinh action.</p>
+          </article>
+          <article class="workflow-step">
+            <span class="workflow-index">6</span>
+            <strong>Trading Signal</strong>
+            <p>Map action thành BUY/SELL/HOLD.</p>
+          </article>
+          <article class="workflow-step">
+            <span class="workflow-index">7</span>
+            <strong>Backtest &amp; Metrics</strong>
+            <p>Đánh giá bằng return, Sharpe, drawdown, volatility.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section" id="models">
+      <div class="landing-container">
+        <div class="section-heading compact">
+          <span>Models</span>
+          <h2>Các chiến lược/mô hình được so sánh</h2>
+          <p>Mỗi mô hình đại diện cho một cách cân bằng khác nhau giữa lợi nhuận kỳ vọng và rủi ro.</p>
+        </div>
+
+        <div class="landing-card-grid four">
+          <article class="landing-card model ppo">
+            <span class="model-tag">Risk-neutral baseline</span>
+            <h3>PPO</h3>
+            <p>Baseline trung lập rủi ro, tối ưu lợi nhuận kỳ vọng.</p>
+          </article>
+          <article class="landing-card model cvar">
+            <span class="model-tag">Downside tail risk</span>
+            <h3>CVaR-PPO</h3>
+            <p>Tập trung vào rủi ro đuôi, phạt các kịch bản lợi nhuận xấu.</p>
+          </article>
+          <article class="landing-card model sortino">
+            <span class="model-tag">Downside volatility</span>
+            <h3>Sortino-PPO</h3>
+            <p>Tập trung vào biến động bất lợi, phù hợp khi quan tâm rủi ro giảm giá.</p>
+          </article>
+          <article class="landing-card model baseline">
+            <span class="model-tag">Passive benchmark</span>
+            <h3>Buy &amp; Hold</h3>
+            <p>Chiến lược chuẩn so sánh, mua và giữ tài sản xuyên suốt giai đoạn.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section landing-muted" id="capabilities">
+      <div class="landing-container">
+        <div class="section-heading compact">
+          <span>Demo Capabilities</span>
+          <h2>Người dùng có thể demo gì?</h2>
+          <p>Ba workflow chính giúp kiểm tra tín hiệu, backtest từng mô hình và so sánh các chiến lược.</p>
+        </div>
+
+        <div class="landing-card-grid three">
+          <article class="landing-card capability">
+            <i class="fas fa-bolt"></i>
+            <h3>Realtime Signal</h3>
+            <p>Nhập mã cổ phiếu để lấy action hiện tại và tín hiệu BUY/SELL/HOLD.</p>
+          </article>
+          <article class="landing-card capability">
+            <i class="fas fa-clock-rotate-left"></i>
+            <h3>Backtest</h3>
+            <p>Chạy mô phỏng trên giai đoạn lịch sử để xem Portfolio Value, return và drawdown.</p>
+          </article>
+          <article class="landing-card capability">
+            <i class="fas fa-scale-balanced"></i>
+            <h3>Model Comparison</h3>
+            <p>So sánh PPO, CVaR-PPO, Sortino-PPO và Buy &amp; Hold trên cùng bộ metric.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section" id="metrics">
+      <div class="landing-container">
+        <div class="section-heading compact">
+          <span>Evaluation Metrics</span>
+          <h2>Đánh giá không chỉ bằng lợi nhuận</h2>
+          <p>Project dùng nhiều metric để nhìn đồng thời hiệu quả sinh lời và mức rủi ro.</p>
+        </div>
+
+        <div class="metric-card-list">
+          <article class="metric-info-card">
+            <strong>Total Return</strong>
+            <p>Tổng lợi nhuận của danh mục.</p>
+          </article>
+          <article class="metric-info-card">
+            <strong>Sharpe Ratio</strong>
+            <p>Lợi nhuận điều chỉnh theo biến động tổng thể.</p>
+          </article>
+          <article class="metric-info-card">
+            <strong>Sortino Ratio</strong>
+            <p>Lợi nhuận điều chỉnh theo biến động giảm giá.</p>
+          </article>
+          <article class="metric-info-card">
+            <strong>Max Drawdown</strong>
+            <p>Mức sụt giảm lớn nhất từ đỉnh xuống đáy.</p>
+          </article>
+          <article class="metric-info-card">
+            <strong>Volatility</strong>
+            <p>Độ biến động của lợi nhuận.</p>
+          </article>
+          <article class="metric-info-card">
+            <strong>Win Rate</strong>
+            <p>Tỷ lệ phiên/trade có kết quả dương.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section landing-muted" id="how-to-demo">
+      <div class="landing-container">
+        <div class="section-heading compact">
+          <span>How to Demo</span>
+          <h2>Cách trình bày demo nhanh</h2>
+        </div>
+
+        <div class="demo-steps">
+          <article class="demo-step">
+            <span>1</span>
+            <div>
+              <strong>Mở Trading Lab</strong>
+              <p>Chọn một mô hình hoặc trang so sánh.</p>
+            </div>
+          </article>
+          <article class="demo-step">
+            <span>2</span>
+            <div>
+              <strong>Chạy Realtime Signal hoặc Backtest</strong>
+              <p>Quan sát action, tín hiệu và giá trị danh mục.</p>
+            </div>
+          </article>
+          <article class="demo-step">
+            <span>3</span>
+            <div>
+              <strong>Giải thích trade-off</strong>
+              <p>So sánh return, Sharpe, Max Drawdown và Win Rate giữa các phương pháp.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <footer class="landing-footer">
+      <div class="landing-container">
+        <p><strong>Risk-Sensitive RL Trading Platform</strong></p>
+        <span>Research prototype cho mục đích học thuật. Không phải khuyến nghị đầu tư.</span>
+      </div>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
