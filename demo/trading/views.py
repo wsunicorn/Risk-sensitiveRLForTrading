@@ -42,6 +42,95 @@ CONFIG = {
     'DEVICE': 'cpu'
 }
 
+ARTIFACT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+class NormalizationConfigError(ValueError):
+    """Raised when training-time normalization parameters are missing or invalid."""
+
+
+def load_norm_params(artifact_dir=ARTIFACT_DIR):
+    """Load feature normalization parameters saved by the training notebook."""
+    norm_path = os.path.join(artifact_dir, 'norm_params.json')
+    if not os.path.exists(norm_path):
+        raise NormalizationConfigError(f"Missing normalization parameters: {norm_path}")
+
+    try:
+        with open(norm_path, 'r') as f:
+            params = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        raise NormalizationConfigError(f"Invalid normalization parameters file {norm_path}: {e}") from e
+
+    feature_columns = params.get('feat_cols') or params.get('feature_columns')
+    means = params.get('feat_mean') or params.get('feature_means') or params.get('mean')
+    stds = params.get('feat_std') or params.get('feature_stds') or params.get('std')
+
+    if means is None or stds is None:
+        raise NormalizationConfigError(
+            "norm_params.json must contain feat_mean/feat_std or feature_means/feature_stds"
+        )
+
+    if isinstance(means, dict) and isinstance(stds, dict):
+        if feature_columns is None:
+            feature_columns = list(means.keys())
+        missing_std = [col for col in feature_columns if col not in stds]
+        missing_mean = [col for col in feature_columns if col not in means]
+        if missing_mean or missing_std:
+            raise NormalizationConfigError(
+                f"norm_params.json missing mean/std for features: {missing_mean + missing_std}"
+            )
+        means = [means[col] for col in feature_columns]
+        stds = [stds[col] for col in feature_columns]
+    elif isinstance(means, dict) or isinstance(stds, dict):
+        raise NormalizationConfigError("norm_params.json mean/std must both be lists or both be objects")
+
+    if feature_columns is not None:
+        if isinstance(feature_columns, str) or not isinstance(feature_columns, (list, tuple)):
+            raise NormalizationConfigError("norm_params.json feature columns must be a list")
+        feature_columns = list(feature_columns)
+
+    try:
+        means = np.asarray(means, dtype=np.float64)
+        stds = np.asarray(stds, dtype=np.float64)
+    except (TypeError, ValueError) as e:
+        raise NormalizationConfigError("norm_params.json mean/std values must be numeric") from e
+
+    if means.ndim != 1 or stds.ndim != 1 or len(means) != len(stds):
+        raise NormalizationConfigError("norm_params.json mean/std must be one-dimensional arrays of equal length")
+    if feature_columns is not None and len(feature_columns) != len(means):
+        raise NormalizationConfigError("norm_params.json feature column count does not match mean/std length")
+    if not np.isfinite(means).all() or not np.isfinite(stds).all():
+        raise NormalizationConfigError("norm_params.json mean/std contain non-finite values")
+    if (stds <= 0).any():
+        raise NormalizationConfigError("norm_params.json std values must be positive")
+
+    state_dim = params.get('state_dim')
+    if state_dim is None:
+        state_dim = len(means) + 3
+    else:
+        try:
+            state_dim = int(state_dim)
+        except (TypeError, ValueError) as e:
+            raise NormalizationConfigError("norm_params.json state_dim must be an integer") from e
+        if feature_columns is not None and state_dim != len(feature_columns) + 3:
+            raise NormalizationConfigError("norm_params.json state_dim does not match feature count + portfolio state")
+
+    try:
+        action_dim = int(params.get('action_dim', 1))
+    except (TypeError, ValueError) as e:
+        raise NormalizationConfigError("norm_params.json action_dim must be an integer") from e
+    if action_dim != 1:
+        raise NormalizationConfigError("norm_params.json action_dim does not match backend model action size")
+
+    return {
+        'path': norm_path,
+        'feature_columns': feature_columns,
+        'feature_means': means,
+        'feature_stds': stds,
+        'state_dim': state_dim,
+        'action_dim': action_dim,
+    }
+
 # ============================================================================
 # MODEL DEFINITIONS (from notebook)
 # ============================================================================
@@ -78,15 +167,32 @@ class ActorCritic(nn.Module):
 
 class TradingEnvironment:
     """Custom Trading Environment"""
-    def __init__(self, df, initial_balance=10000, transaction_cost=0.001, slippage=0.0005):
+    def __init__(self, df, initial_balance=10000, transaction_cost=0.001, slippage=0.0005, norm_params=None):
         self.df = df.reset_index(drop=True)
         self.initial_balance = initial_balance
         self.transaction_cost = transaction_cost
         self.slippage = slippage
 
-        self.feature_columns = [col for col in df.columns if col not in ['date', 'open', 'high', 'low']]
-        self.feature_means = df[self.feature_columns].mean()
-        self.feature_stds = df[self.feature_columns].std() + 1e-8
+        if norm_params is None:
+            raise NormalizationConfigError("Training-time norm_params are required for model inference")
+
+        available_feature_columns = [col for col in df.columns if col not in ['date', 'open', 'high', 'low']]
+        if norm_params['feature_columns'] is None:
+            print("Warning: norm_params.json has no feature columns; using backend feature order")
+            self.feature_columns = available_feature_columns
+        else:
+            self.feature_columns = norm_params['feature_columns']
+
+        missing_features = [col for col in self.feature_columns if col not in df.columns]
+        if missing_features:
+            raise NormalizationConfigError(f"Input data missing normalized features: {missing_features}")
+
+        self.feature_means = norm_params['feature_means']
+        self.feature_stds = norm_params['feature_stds']
+        if len(self.feature_columns) != len(self.feature_means):
+            raise NormalizationConfigError("Feature column count does not match normalization parameters")
+        if norm_params['state_dim'] != len(self.feature_columns) + 3:
+            raise NormalizationConfigError("Model state_dim does not match normalized feature count")
 
         self.current_step = 0
         self.balance = initial_balance
@@ -103,8 +209,8 @@ class TradingEnvironment:
         return self._get_observation()
 
     def _get_observation(self):
-        market_features_raw = self.df.loc[self.current_step, self.feature_columns].values
-        market_features = (market_features_raw - self.feature_means.values) / self.feature_stds.values
+        market_features_raw = self.df.loc[self.current_step, self.feature_columns].values.astype(np.float64)
+        market_features = (market_features_raw - self.feature_means) / self.feature_stds
 
         current_price = self.df.loc[self.current_step, 'close']
         portfolio_features = np.array([
@@ -190,6 +296,7 @@ class ModelEvaluator:
         self.ppo_model = None
         self.cvar_model = None
         self.sortino_model = None
+        self.norm_params = None
         self.models_loaded = False
         # Load models on initialization
         self.load_models()
@@ -200,11 +307,13 @@ class ModelEvaluator:
             return False, "Required packages not installed"
 
         try:
+            self.norm_params = load_norm_params(ARTIFACT_DIR)
+
             # Load PPO model
-            ppo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'ppo_model.pth')
+            ppo_path = os.path.join(ARTIFACT_DIR, 'ppo_model.pth')
             if os.path.exists(ppo_path):
                 checkpoint = torch.load(ppo_path, map_location='cpu')
-                state_dim = 19
+                state_dim = self.norm_params['state_dim']
                 action_dim = 1
                 self.ppo_model = ActorCritic(state_dim, action_dim, CONFIG['PPO_HIDDEN_DIM'])
 
@@ -217,10 +326,10 @@ class ModelEvaluator:
                 print("PPO model loaded successfully")
 
             # Load CVaR-PPO model
-            cvar_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cvar_ppo_model.pth')
+            cvar_path = os.path.join(ARTIFACT_DIR, 'cvar_ppo_model.pth')
             if os.path.exists(cvar_path):
                 checkpoint = torch.load(cvar_path, map_location='cpu')
-                state_dim = 19
+                state_dim = self.norm_params['state_dim']
                 action_dim = 1
                 self.cvar_model = ActorCritic(state_dim, action_dim, CONFIG['PPO_HIDDEN_DIM'])
 
@@ -233,10 +342,10 @@ class ModelEvaluator:
                 print("CVaR-PPO model loaded successfully")
 
             # Load Sortino-PPO model
-            sortino_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'sortino_ppo_model.pth')
+            sortino_path = os.path.join(ARTIFACT_DIR, 'sortino_ppo_model.pth')
             if os.path.exists(sortino_path):
                 checkpoint = torch.load(sortino_path, map_location='cpu')
-                state_dim = 19
+                state_dim = self.norm_params['state_dim']
                 action_dim = 1
                 self.sortino_model = ActorCritic(state_dim, action_dim, CONFIG['PPO_HIDDEN_DIM'])
 
@@ -423,7 +532,13 @@ class TestModelsView(View):
                     return JsonResponse({'error': message}, status=500)
 
             # Create environment
-            env = TradingEnvironment(df, CONFIG['INITIAL_BALANCE'], CONFIG['TRANSACTION_COST'], CONFIG['SLIPPAGE'])
+            env = TradingEnvironment(
+                df,
+                CONFIG['INITIAL_BALANCE'],
+                CONFIG['TRANSACTION_COST'],
+                CONFIG['SLIPPAGE'],
+                norm_params=evaluator.norm_params
+            )
 
             # Evaluate PPO
             ppo_history, ppo_value = evaluator.evaluate_model(evaluator.ppo_model, env)
@@ -497,7 +612,13 @@ class BacktestView(View):
             results = {}
 
             for model_name, model in [('ppo', evaluator.ppo_model), ('cvar', evaluator.cvar_model), ('sortino', evaluator.sortino_model)]:
-                env = TradingEnvironment(df, initial_balance, CONFIG['TRANSACTION_COST'], CONFIG['SLIPPAGE'])
+                env = TradingEnvironment(
+                    df,
+                    initial_balance,
+                    CONFIG['TRANSACTION_COST'],
+                    CONFIG['SLIPPAGE'],
+                    norm_params=evaluator.norm_params
+                )
                 history, final_value = evaluator.evaluate_model(model, env)
                 metrics = calculate_metrics(history, initial_balance)
 
@@ -560,7 +681,13 @@ class RealtimePredictView(View):
                     return JsonResponse({'error': message}, status=500)
 
             # Get current state
-            env = TradingEnvironment(df, CONFIG['INITIAL_BALANCE'], CONFIG['TRANSACTION_COST'], CONFIG['SLIPPAGE'])
+            env = TradingEnvironment(
+                df,
+                CONFIG['INITIAL_BALANCE'],
+                CONFIG['TRANSACTION_COST'],
+                CONFIG['SLIPPAGE'],
+                norm_params=evaluator.norm_params
+            )
             state = env.reset()
 
             # Move to last time step
