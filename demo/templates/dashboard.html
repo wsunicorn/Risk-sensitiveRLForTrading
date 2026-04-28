@@ -264,6 +264,7 @@
             }
         }
     </style>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
 </head>
 <body>
     <div class="main-container">
@@ -280,6 +281,7 @@
         <nav class="nav-strip">
             <div class="nav-inner">
                 <a href="/" class="nav-btn"><i class="fas fa-home"></i> Trang chủ</a>
+                <a href="/dashboard" class="nav-btn active"><i class="fas fa-tachometer-alt"></i> Bảng điều khiển</a>
                 <a href="/ppo" class="nav-btn"><i class="fas fa-brain"></i> Mô hình PPO</a>
                 <a href="/cvar" class="nav-btn"><i class="fas fa-shield-alt"></i> Mô hình CVaR-PPO</a>
                 <a href="/sortino" class="nav-btn"><i class="fas fa-chart-line"></i> Mô hình Sortino-PPO</a>
