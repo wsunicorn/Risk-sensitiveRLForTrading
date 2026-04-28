@@ -249,9 +249,9 @@
         <!-- Header -->
         <div class="header">
             <h1><i class="fas fa-brain"></i> Mô hình PPO</h1>
-            <p>Học Tăng Cường Trung Lập với Rủi ro cho Giao dịch Thuật toán</p>
+            <p>Học tăng cường trung lập rủi ro cho giao dịch thuật toán</p>
             <div class="model-badge">
-                <i class="fas fa-robot"></i> PPO (Tối ưu hóa Chính sách Tiếp cận)
+                <i class="fas fa-robot"></i> PPO (Proximal Policy Optimization)
             </div>
         </div>
 
@@ -270,7 +270,7 @@
                 <i class="fas fa-chart-line"></i> Sortino-PPO
             </a>
             <a href="/compare" class="nav-btn">
-                <i class="fas fa-balance-scale"></i> So sánh Mô hình
+                <i class="fas fa-balance-scale"></i> So sánh mô hình
             </a>
         </div>
 
@@ -282,22 +282,22 @@
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title">
-                                <i class="fas fa-info-circle"></i> Model Overview
+                                <i class="fas fa-info-circle"></i> Tổng quan mô hình
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-8">
-                                    <h6>Risk-Neutral PPO Approach</h6>
+                                    <h6>Cách tiếp cận PPO trung lập rủi ro</h6>
                                     <p>
-                                        This model uses Proximal Policy Optimization (PPO) to maximize expected returns without explicit risk management.
-                                        It employs an Actor-Critic architecture with 256 hidden units and was trained for 100 episodes on SPY data.
+                                        Mô hình này dùng Proximal Policy Optimization (PPO) để tối đa hóa lợi nhuận kỳ vọng mà không có cơ chế quản trị rủi ro rõ ràng.
+                                        Mô hình sử dụng kiến trúc Actor-Critic với 256 nút ẩn và được huấn luyện 100 tập trên dữ liệu SPY.
                                     </p>
                                     <ul>
-                                        <li><strong>Architecture:</strong> Actor-Critic Network</li>
-                                        <li><strong>Hidden Units:</strong> 256</li>
-                                        <li><strong>Training Episodes:</strong> 100</li>
-                                        <li><strong>Risk Management:</strong> None (Risk-Neutral)</li>
+                                        <li><strong>Kiến trúc:</strong> Mạng Actor-Critic</li>
+                                        <li><strong>Số nút ẩn:</strong> 256</li>
+                                        <li><strong>Số tập huấn luyện:</strong> 100</li>
+                                        <li><strong>Quản trị rủi ro:</strong> Không có ràng buộc riêng (trung lập rủi ro)</li>
                                     </ul>
                                 </div>
                                 <div class="col-md-4 text-center">
@@ -305,7 +305,7 @@
                                         <i class="fas fa-brain"></i>
                                     </div>
                                     <div class="metric-value">PPO</div>
-                                    <small class="text-muted">Risk-Neutral</small>
+                                    <small class="text-muted">Trung lập rủi ro</small>
                                 </div>
                             </div>
                         </div>
@@ -327,18 +327,18 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="symbol" class="form-label">
-                                            <i class="fas fa-search"></i> Stock Symbol
+                                            <i class="fas fa-search"></i> Mã giao dịch
                                         </label>
-                                        <input type="text" class="form-control" id="symbol" placeholder="e.g., SPY, AAPL, TSLA" value="SPY">
+                                        <input type="text" class="form-control" id="symbol" placeholder="Ví dụ: SPY, AAPL, TSLA" value="SPY">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label class="form-label">
-                                            <i class="fas fa-info-circle"></i> Model Info
+                                            <i class="fas fa-info-circle"></i> Thông tin mô hình
                                         </label>
                                         <div class="alert alert-info">
-                                            <small>PPO (Risk-Neutral) - Maximizes expected returns</small>
+                                            <small>PPO (Trung lập rủi ro) - Tối đa hóa lợi nhuận kỳ vọng</small>
                                         </div>
                                     </div>
                                 </div>
@@ -346,7 +346,7 @@
 
                             <div class="text-center mb-4">
                                 <button id="predictBtn" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-robot"></i> Lấy Dự đoán PPO
+                                    <i class="fas fa-robot"></i> Lấy tín hiệu PPO
                                 </button>
                             </div>
 
@@ -364,29 +364,29 @@
                                     <div class="metric-grid mt-4">
                                         <div class="metric-item">
                                             <div class="metric-value" id="actionValue">-</div>
-                                            <div class="metric-label">Action</div>
+                                            <div class="metric-label">Hành động</div>
                                         </div>
                                         <div class="metric-item">
                                             <div class="metric-value" id="strengthValue">-</div>
-                                            <div class="metric-label">Strength (%)</div>
+                                            <div class="metric-label">Độ mạnh tín hiệu (%)</div>
                                         </div>
                                         <div class="metric-item">
                                             <div class="metric-value" id="priceValue">-</div>
-                                            <div class="metric-label">Current Price</div>
+                                            <div class="metric-label">Giá hiện tại</div>
                                         </div>
                                         <div class="metric-item">
                                             <div class="metric-value" id="timestampValue">-</div>
-                                            <div class="metric-label">Timestamp</div>
+                                            <div class="metric-label">Thời điểm cập nhật</div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="alert alert-info">
-                                    <h6><i class="fas fa-lightbulb"></i> Signal Guide:</h6>
+                                    <h6><i class="fas fa-lightbulb"></i> Hướng dẫn đọc tín hiệu:</h6>
                                     <ul class="mb-0">
-                                        <li><strong>BUY:</strong> Action > 0.1 - Model recommends buying (bullish)</li>
-                                        <li><strong>SELL:</strong> Action < -0.1 - Model recommends selling (bearish)</li>
-                                        <li><strong>HOLD:</strong> -0.1 ≤ Action ≤ 0.1 - Model recommends no action (neutral)</li>
+                                        <li><strong>MUA:</strong> Hành động &gt; 0.1 - Mô hình gợi ý mua</li>
+                                        <li><strong>BÁN:</strong> Hành động &lt; -0.1 - Mô hình gợi ý bán</li>
+                                        <li><strong>GIỮ:</strong> -0.1 ≤ Hành động ≤ 0.1 - Mô hình gợi ý giữ nguyên vị thế</li>
                                     </ul>
                                 </div>
                             </div>
@@ -401,17 +401,17 @@
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title">
-                                <i class="fas fa-chart-bar"></i> Kiểm tra Lại PPO Model
+                                <i class="fas fa-chart-bar"></i> Kiểm tra lại mô hình PPO
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="alert alert-warning">
-                                <h6><i class="fas fa-exclamation-triangle"></i> Important Setup Guide:</h6>
+                                <h6><i class="fas fa-exclamation-triangle"></i> Hướng dẫn thiết lập:</h6>
                                 <ul class="mb-0">
-                                    <li><strong>Date Range:</strong> Must be AFTER model training period (after Jan 2022)</li>
-                                    <li><strong>Recommended:</strong> 2023-01-01 to 2024-12-31 (Bull Market) or 2022-01-01 to 2022-12-31 (Bear Market)</li>
-                                    <li><strong>Processing Time:</strong> Expect 30-60 seconds for 1-2 years of data</li>
-                                    <li><strong>Symbol:</strong> Best results with SPY (same as training data)</li>
+                                    <li><strong>Khoảng thời gian:</strong> Nên nằm sau giai đoạn huấn luyện mô hình (sau tháng 01/2022)</li>
+                                    <li><strong>Gợi ý:</strong> 2023-01-01 đến 2024-12-31 (thị trường tăng) hoặc 2022-01-01 đến 2022-12-31 (thị trường giảm)</li>
+                                    <li><strong>Thời gian xử lý:</strong> Khoảng 30-60 giây cho 1-2 năm dữ liệu</li>
+                                    <li><strong>Mã giao dịch:</strong> SPY được khuyến nghị vì trùng với dữ liệu huấn luyện</li>
                                 </ul>
                             </div>
 
@@ -424,16 +424,16 @@
                                                 <i class="fas fa-search"></i> Mã Chứng Khoán
                                             </label>
                                             <input type="text" class="form-control" id="backtestSymbol" value="SPY" readonly>
-                                            <small class="text-muted">SPY recommended (same as training)</small>
+                                            <small class="text-muted">Khuyến nghị dùng SPY như dữ liệu huấn luyện</small>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label for="initialBalance" class="form-label">
-                                                <i class="fas fa-dollar-sign"></i> Initial Balance ($)
+                                                <i class="fas fa-dollar-sign"></i> Vốn ban đầu ($)
                                             </label>
                                             <input type="number" class="form-control" id="initialBalance" value="10000">
-                                            <small class="text-muted">Default: $10,000</small>
+                                            <small class="text-muted">Mặc định: $10,000</small>
                                         </div>
                                     </div>
                                 </div>
@@ -442,19 +442,19 @@
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label for="startDate" class="form-label">
-                                                <i class="fas fa-calendar-alt"></i> Start Date
+                                                <i class="fas fa-calendar-alt"></i> Ngày bắt đầu
                                             </label>
                                             <input type="date" class="form-control" id="startDate" value="2023-01-01">
-                                            <small class="text-muted">Must be after Jan 2022</small>
+                                            <small class="text-muted">Nên sau tháng 01/2022</small>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label for="endDate" class="form-label">
-                                                <i class="fas fa-calendar-alt"></i> End Date
+                                                <i class="fas fa-calendar-alt"></i> Ngày kết thúc
                                             </label>
                                             <input type="date" class="form-control" id="endDate" value="2024-12-31">
-                                            <small class="text-muted">Recent data recommended</small>
+                                            <small class="text-muted">Khuyến nghị dùng dữ liệu gần đây</small>
                                         </div>
                                     </div>
                                 </div>
@@ -475,25 +475,25 @@
                                     <div class="col-md-3">
                                         <div class="metric-item">
                                             <div class="metric-value" id="finalBalance">-</div>
-                                            <div class="metric-label">Final Balance</div>
+                                            <div class="metric-label">Giá trị cuối kỳ</div>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="metric-item">
                                             <div class="metric-value" id="totalReturn">-</div>
-                                            <div class="metric-label">Total Return</div>
+                                            <div class="metric-label">Tổng lợi nhuận</div>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="metric-item">
                                             <div class="metric-value" id="sharpeRatio">-</div>
-                                            <div class="metric-label">Sharpe Ratio</div>
+                                            <div class="metric-label">Tỷ lệ Sharpe</div>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="metric-item">
                                             <div class="metric-value" id="maxDrawdown">-</div>
-                                            <div class="metric-label">Max Drawdown</div>
+                                            <div class="metric-label">Mức sụt giảm tối đa</div>
                                         </div>
                                     </div>
                                 </div>
@@ -506,8 +506,8 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p>Nền tảng Giao dịch RL Nhạy cảm với Rủi ro | Được xây dựng với PyTorch & Django | Chỉ dành cho Mục đích Giáo dục</p>
-            <p><small>© 2026 - PPO Model: Risk-Neutral Reinforcement Learning</small></p>
+            <p>Nền tảng giao dịch RL nhạy cảm với rủi ro | Xây dựng bằng PyTorch & Django | Chỉ dành cho mục đích học tập</p>
+            <p><small>© 2026 - Mô hình PPO: Học tăng cường trung lập rủi ro</small></p>
         </div>
     </div>
 
@@ -558,10 +558,10 @@
                     displayPrediction(data.ppo);
                     results.style.display = 'block';
                 } else {
-                    alert('Error: ' + data.error);
+                    alert('Lỗi: ' + data.error);
                 }
             } catch (error) {
-                alert('Error fetching prediction: ' + error.message);
+                alert('Lỗi khi lấy tín hiệu: ' + error.message);
             }
 
             loading.style.display = 'none';
@@ -630,10 +630,10 @@
                     displayBacktestResults(data.results.ppo, data.data_info);
                     document.getElementById('backtestResults').style.display = 'block';
                 } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
+                    alert('Lỗi: ' + (data.error || 'Lỗi không xác định'));
                 }
             } catch (error) {
-                alert('Error running backtest: ' + error.message);
+                alert('Lỗi khi chạy kiểm tra lại: ' + error.message);
             }
         });
 
@@ -665,14 +665,14 @@
                     y: portfolioValues,
                     type: 'scatter',
                     mode: 'lines',
-                    name: 'PPO Portfolio',
+                    name: 'Danh mục PPO',
                     line: {color: '#2563eb'}
                 }];
 
                 const layout = {
-                    title: `Kiểm tra Lại Mô hình PPO: ${dataInfo.symbol} (${dataInfo.start_date} đến ${dataInfo.end_date})`,
-                    xaxis: {title: 'Ngày Giao dịch'},
-                    yaxis: {title: 'Giá trị Danh mục ($)'},
+                    title: `Kiểm tra lại mô hình PPO: ${dataInfo.symbol} (${dataInfo.start_date} đến ${dataInfo.end_date})`,
+                    xaxis: {title: 'Ngày giao dịch'},
+                    yaxis: {title: 'Giá trị danh mục ($)'},
                     showlegend: true
                 };
 
