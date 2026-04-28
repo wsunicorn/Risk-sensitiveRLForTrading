@@ -403,7 +403,7 @@
                                 </p>
                             </div>
 
-                            <form id="comparisonForm">
+                            <form id="comparisonForm" method="post">
                                 {% csrf_token %}
                                 <div class="row">
                                     <div class="col-md-6">
@@ -620,17 +620,14 @@
                     },
                     body: JSON.stringify(formData)
                 });
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
 
                 const data = await response.json();
 
-                if (data.success) {
+                if (data.success && data.results && data.data_info) {
                     displayComparisonResults(data.results, data.data_info);
                     results.style.display = 'block';
+                } else if (data.success && data.comparison) {
+                    alert('API so sánh tổng hợp đã phản hồi, nhưng trang này chưa có dữ liệu backtest chi tiết để vẽ biểu đồ.');
                 } else {
                     alert('Lỗi: ' + (data.error || 'Lỗi không xác định'));
                 }

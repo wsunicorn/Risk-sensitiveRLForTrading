@@ -510,8 +510,8 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="metric-item">
-                                            <div class="metric-value" id="sortinoRatio">-</div>
-                                            <div class="metric-label">Tỷ lệ Sortino</div>
+                                            <div class="metric-value" id="maxDrawdown">-</div>
+                                            <div class="metric-label">Mức sụt giảm tối đa</div>
                                         </div>
                                     </div>
                                 </div>
@@ -577,7 +577,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    displayPrediction(data.sortino);
+                    displayPrediction(data.sortino, data);
                     results.style.display = 'block';
                 } else {
                     alert('Lỗi: ' + data.error);
@@ -589,7 +589,7 @@
             loading.style.display = 'none';
         });
 
-        function displayPrediction(prediction) {
+        function displayPrediction(prediction, responseData) {
             const signalBadge = document.getElementById('signalBadge');
             const actionValue = document.getElementById('actionValue');
             const strengthValue = document.getElementById('strengthValue');
@@ -616,11 +616,11 @@
             }
 
             // Update price and timestamp
-            if (prediction && prediction.price !== undefined) {
-                document.getElementById('priceValue').textContent = '$' + prediction.price.toFixed(2);
+            if (responseData && responseData.current_price !== undefined) {
+                document.getElementById('priceValue').textContent = '$' + responseData.current_price.toFixed(2);
             }
-            if (prediction && prediction.timestamp) {
-                document.getElementById('timestampValue').textContent = new Date(prediction.timestamp).toLocaleString();
+            if (responseData && responseData.timestamp) {
+                document.getElementById('timestampValue').textContent = new Date(responseData.timestamp).toLocaleString();
             }
         }
 

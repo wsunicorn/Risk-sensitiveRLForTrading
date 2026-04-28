@@ -36,7 +36,7 @@ function switchTab(tabName) {
 
 async function checkStatus() {
     try {
-        const response = await fetch('/api/status');
+        const response = await fetch('/api/status/');
         const data = await response.json();
         
         const statusIndicator = document.getElementById('statusIndicator');
@@ -81,7 +81,7 @@ async function getPrediction(model) {
     showLoading('rt-loading', 'rt-results', 'rt-error');
     
     try {
-        const response = await fetch('/api/realtime_predict', {
+        const response = await fetch('/api/realtime_predict/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -251,7 +251,7 @@ async function runBacktest() {
     showLoading('bt-loading', 'bt-results', 'bt-error');
     
     try {
-        const response = await fetch('/api/backtest', {
+        const response = await fetch('/api/backtest/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -426,7 +426,7 @@ async function loadComparison() {
     showLoading('cmp-loading', 'cmp-results', 'cmp-error');
     
     try {
-        const response = await fetch('/api/compare_models');
+        const response = await fetch('/api/compare_models/');
         const data = await response.json();
         
         if (!response.ok || !data.success) {

@@ -1,9 +1,11 @@
 from django.urls import path
+from django.views.generic import RedirectView
 from . import views
 
 app_name = 'trading'
 
 urlpatterns = [
+    path('favicon.ico', RedirectView.as_view(url='https://img.icons8.com/color/48/000000/trading.png', permanent=False)),
     path('', views.index, name='index'),
     path('ppo/', views.ppo_page, name='ppo_page'),
     path('cvar/', views.cvar_page, name='cvar_page'),
