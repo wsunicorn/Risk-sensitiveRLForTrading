@@ -1,5 +1,7 @@
 import json
 import os
+import tempfile
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -43,6 +45,42 @@ CONFIG = {
 }
 
 ARTIFACT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+YFINANCE_CACHE_DIR = os.path.join(tempfile.gettempdir(), 'rsrl_yfinance_cache')
+REALTIME_MARKET_DATA_ERROR = "Không lấy được dữ liệu thị trường cho {symbol}. Hãy kiểm tra kết nối hoặc thử lại."
+
+if PACKAGES_AVAILABLE:
+    os.makedirs(YFINANCE_CACHE_DIR, exist_ok=True)
+    yf.set_tz_cache_location(YFINANCE_CACHE_DIR)
+
+
+@contextmanager
+def yfinance_network_context():
+    """Avoid inherited discard proxies that make yfinance return empty data."""
+    proxy_keys = ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy', 'https_proxy', 'all_proxy')
+    no_proxy_keys = ('NO_PROXY', 'no_proxy')
+    original_values = {key: os.environ.get(key) for key in proxy_keys + no_proxy_keys}
+
+    uses_discard_proxy = any(
+        value and '127.0.0.1:9' in value
+        for key, value in original_values.items()
+        if key in proxy_keys
+    )
+
+    if uses_discard_proxy:
+        for key in proxy_keys:
+            os.environ.pop(key, None)
+        os.environ['NO_PROXY'] = '*'
+        os.environ['no_proxy'] = '*'
+
+    try:
+        yield
+    finally:
+        if uses_discard_proxy:
+            for key, value in original_values.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
 
 
 class NormalizationConfigError(ValueError):
@@ -164,6 +202,12 @@ class ActorCritic(nn.Module):
         action = torch.tanh(action)
         return action, action_log_prob
 
+    def act_deterministic(self, state):
+        """Use policy mean for reproducible inference/backtest."""
+        shared_features = self.forward(state)
+        action_mean = self.actor_mean(shared_features)
+        return torch.tanh(action_mean)
+
 
 class TradingEnvironment:
     """Custom Trading Environment"""
@@ -178,8 +222,7 @@ class TradingEnvironment:
 
         available_feature_columns = [col for col in df.columns if col not in ['date', 'open', 'high', 'low']]
         if norm_params['feature_columns'] is None:
-            print("Warning: norm_params.json has no feature columns; using backend feature order")
-            self.feature_columns = available_feature_columns
+            raise NormalizationConfigError("norm_params.json must include feat_cols/feature_columns for inference")
         else:
             self.feature_columns = norm_params['feature_columns']
 
@@ -374,7 +417,7 @@ class ModelEvaluator:
         with torch.no_grad():
             while not done:
                 state_tensor = torch.FloatTensor(state).unsqueeze(0)
-                action_tensor, _ = model.act(state_tensor)
+                action_tensor = model.act_deterministic(state_tensor)
                 action = action_tensor.cpu().numpy().flatten()
                 state, reward, done, _ = env.step(action)
 
@@ -396,8 +439,9 @@ def download_and_process_data(symbol, start_date, end_date):
 
     try:
         # Download data
-        ticker = yf.Ticker(symbol)
-        df = ticker.history(start=start_date, end=end_date, interval='1d')
+        with yfinance_network_context():
+            ticker = yf.Ticker(symbol)
+            df = ticker.history(start=start_date, end=end_date, interval='1d')
 
         if df.empty:
             return None, f"No data for {symbol}"
@@ -407,29 +451,9 @@ def download_and_process_data(symbol, start_date, end_date):
 
         required_cols = ['date', 'open', 'high', 'low', 'close', 'volume']
         df = df[required_cols]
+        df = clean_market_ohlcv(df)
 
-        # Add technical indicators
-        df['sma_10'] = ta.trend.sma_indicator(df['close'], window=10)
-        df['sma_20'] = ta.trend.sma_indicator(df['close'], window=20)
-        df['sma_50'] = ta.trend.sma_indicator(df['close'], window=50)
-        df['rsi'] = ta.momentum.rsi(df['close'], window=14)
-
-        macd = ta.trend.MACD(df['close'])
-        df['macd'] = macd.macd()
-        df['macd_signal'] = macd.macd_signal()
-        df['macd_diff'] = macd.macd_diff()
-
-        bollinger = ta.volatility.BollingerBands(df['close'])
-        df['bb_high'] = bollinger.bollinger_hband()
-        df['bb_low'] = bollinger.bollinger_lband()
-        df['bb_mid'] = bollinger.bollinger_mavg()
-
-        df['atr'] = ta.volatility.average_true_range(df['high'], df['low'], df['close'])
-        df['returns'] = df['close'].pct_change()
-        df['log_returns'] = np.log(df['close'] / df['close'].shift(1))
-        df['volume_sma'] = ta.trend.sma_indicator(df['volume'], window=20)
-
-        df.dropna(inplace=True)
+        df = add_technical_indicators(df)
 
         return df, None
 
@@ -437,9 +461,133 @@ def download_and_process_data(symbol, start_date, end_date):
         return None, str(e)
 
 
+def clean_market_ohlcv(df):
+    """Sort OHLCV data and remove unusable rows before indicator computation."""
+    df = df.copy()
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    df = df.dropna(subset=['date', 'open', 'high', 'low', 'close', 'volume'])
+    df = df.sort_values('date').drop_duplicates(subset=['date'], keep='last')
+    numeric_cols = ['open', 'high', 'low', 'close', 'volume']
+    df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
+    df = df.dropna(subset=numeric_cols)
+    return df.reset_index(drop=True)
+
+
+def normalize_yfinance_frame(raw_df):
+    """Normalize yfinance output to the OHLCV schema used by the trading environment."""
+    if raw_df is None or raw_df.empty:
+        return pd.DataFrame()
+
+    df = raw_df.copy()
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = [col[0] if isinstance(col, tuple) else col for col in df.columns]
+
+    df.reset_index(inplace=True)
+    df.columns = [str(col).lower().replace(' ', '_') for col in df.columns]
+    if 'datetime' in df.columns and 'date' not in df.columns:
+        df.rename(columns={'datetime': 'date'}, inplace=True)
+
+    required_cols = ['date', 'open', 'high', 'low', 'close', 'volume']
+    missing_ohlcv = [col for col in required_cols if col not in df.columns]
+    if missing_ohlcv:
+        raise ValueError(f"yfinance data missing OHLCV columns: {missing_ohlcv}")
+
+    return clean_market_ohlcv(df[required_cols])
+
+
+def realtime_feature_columns():
+    """Return training-time feature columns for realtime validation."""
+    if evaluator.norm_params is not None:
+        return evaluator.norm_params['feature_columns'] or []
+    return load_norm_params(ARTIFACT_DIR)['feature_columns'] or []
+
+
+def log_realtime_data_status(symbol, raw_rows, processed_rows, missing_features=None, error=None):
+    """Small runtime trace for diagnosing realtime market-data availability."""
+    missing_features = missing_features or []
+    message = (
+        f"[Realtime data] symbol={symbol} raw_rows={raw_rows} "
+        f"processed_rows={processed_rows} missing_features={missing_features}"
+    )
+    if error:
+        message += f" error={error}"
+    print(message)
+
+
+def download_realtime_market_data(symbol):
+    """Download enough daily history for realtime technical indicators and final state inference."""
+    if not PACKAGES_AVAILABLE:
+        return None, "Required packages not available"
+
+    raw_rows = 0
+    processed_rows = 0
+    missing_features = []
+
+    try:
+        raw_df = pd.DataFrame()
+        first_error = None
+
+        try:
+            with yfinance_network_context():
+                ticker = yf.Ticker(symbol)
+                raw_df = ticker.history(period='1y', interval='1d', auto_adjust=False)
+            raw_rows = 0 if raw_df is None else len(raw_df)
+        except Exception as e:
+            first_error = e
+
+        if raw_df is None or raw_df.empty:
+            try:
+                with yfinance_network_context():
+                    raw_df = yf.download(
+                        symbol,
+                        period='1y',
+                        interval='1d',
+                        auto_adjust=False,
+                        progress=False,
+                        threads=False,
+                    )
+                raw_rows = 0 if raw_df is None else len(raw_df)
+            except Exception as e:
+                if first_error is None:
+                    first_error = e
+
+        if raw_df is None or raw_df.empty:
+            log_realtime_data_status(symbol, raw_rows, processed_rows, error=str(first_error) if first_error else None)
+            return None, REALTIME_MARKET_DATA_ERROR.format(symbol=symbol)
+
+        df = normalize_yfinance_frame(raw_df)
+        if df.empty:
+            log_realtime_data_status(symbol, raw_rows, processed_rows)
+            return None, REALTIME_MARKET_DATA_ERROR.format(symbol=symbol)
+
+        processed_df = add_technical_indicators(df)
+        processed_rows = len(processed_df)
+        feature_columns = realtime_feature_columns()
+        missing_features = [col for col in feature_columns if col not in processed_df.columns]
+
+        log_realtime_data_status(symbol, raw_rows, processed_rows, missing_features)
+
+        if processed_df.empty:
+            return None, (
+                f"Không đủ dữ liệu lịch sử cho {symbol} sau khi tính technical indicators. "
+                "Hãy thử lại hoặc chọn symbol khác."
+            )
+        if missing_features:
+            return None, f"Dữ liệu realtime thiếu feature cần thiết: {missing_features}"
+
+        return processed_df, None
+
+    except Exception as e:
+        log_realtime_data_status(symbol, raw_rows, processed_rows, missing_features, str(e))
+        return None, REALTIME_MARKET_DATA_ERROR.format(symbol=symbol)
+
+
 def calculate_metrics(history, initial_balance=10000):
     """Calculate trading performance metrics"""
     if not PACKAGES_AVAILABLE:
+        return {}
+
+    if not history:
         return {}
 
     portfolio_values = [h['portfolio_value'] for h in history]
@@ -470,6 +618,203 @@ def calculate_metrics(history, initial_balance=10000):
     }
 
 
+def calculate_risk_metrics(portfolio_values, returns=None, actions=None, initial_balance=10000):
+    """Calculate extended risk metrics for research dashboard outputs."""
+    if not PACKAGES_AVAILABLE:
+        return {}
+
+    values = np.asarray(portfolio_values, dtype=np.float64)
+    if values.size == 0:
+        return {}
+
+    if returns is None:
+        returns = np.diff(values) / (values[:-1] + 1e-10)
+    returns = np.asarray(returns, dtype=np.float64)
+    returns = returns[np.isfinite(returns)]
+
+    total_return = (values[-1] - initial_balance) / (initial_balance + 1e-10)
+    periods = max(len(values) - 1, 1)
+    annualized_return = (values[-1] / (initial_balance + 1e-10)) ** (252 / periods) - 1
+    annualized_volatility = float(np.std(returns) * np.sqrt(252)) if returns.size else 0.0
+    downside_returns = returns[returns < 0]
+    downside_vol = float(np.std(downside_returns) * np.sqrt(252)) if downside_returns.size else 0.0
+    sharpe_ratio = float(np.mean(returns) / (np.std(returns) + 1e-10) * np.sqrt(252)) if returns.size else 0.0
+    sortino_ratio = float(np.mean(returns) / (np.std(downside_returns) + 1e-10) * np.sqrt(252)) if downside_returns.size else 0.0
+    peak = np.maximum.accumulate(values)
+    drawdown = (values - peak) / (peak + 1e-10)
+    max_drawdown = float(np.min(drawdown)) if drawdown.size else 0.0
+    calmar_ratio = float(annualized_return / abs(max_drawdown)) if max_drawdown < 0 else 0.0
+    var_95 = float(np.quantile(returns, 0.05)) if returns.size else 0.0
+    cvar_slice = returns[returns <= var_95] if returns.size else np.array([])
+    cvar_95 = float(np.mean(cvar_slice)) if cvar_slice.size else var_95
+    win_rate = float(np.mean(returns > 0)) if returns.size else 0.0
+    average_trade_return = float(np.mean(returns)) if returns.size else 0.0
+
+    turnover = 0.0
+    number_of_trades = 0
+    if actions is not None:
+        action_arr = np.asarray(actions, dtype=np.float64)
+        number_of_trades = int(np.sum(np.abs(action_arr) > 0.1))
+        turnover = float(np.mean(np.abs(action_arr))) if action_arr.size else 0.0
+
+    return {
+        'total_return': float(total_return),
+        'final_value': float(values[-1]),
+        'annualized_return': float(annualized_return),
+        'annualized_volatility': annualized_volatility,
+        'sharpe_ratio': sharpe_ratio,
+        'sortino_ratio': sortino_ratio,
+        'max_drawdown': max_drawdown,
+        'calmar_ratio': calmar_ratio,
+        'var_95': var_95,
+        'cvar_95': cvar_95,
+        'win_rate': win_rate,
+        'average_trade_return': average_trade_return,
+        'turnover': turnover,
+        'num_trades': number_of_trades if actions is not None else int(len(values)),
+        'downside_volatility': downside_vol,
+        'volatility': annualized_volatility,
+    }
+
+
+def calculate_drawdown_series(portfolio_values):
+    """Return drawdown time series from portfolio values."""
+    values = np.asarray(portfolio_values, dtype=np.float64)
+    if values.size == 0:
+        return []
+    peak = np.maximum.accumulate(values)
+    return ((values - peak) / (peak + 1e-10)).astype(float).tolist()
+
+
+def classify_market_regimes(df):
+    """Classify market regimes using rolling return and rolling volatility."""
+    if not PACKAGES_AVAILABLE or df is None or df.empty:
+        return []
+
+    close = df['close'].astype(float).reset_index(drop=True)
+    returns = close.pct_change()
+    rolling_return = close.pct_change(60)
+    rolling_vol = returns.rolling(60).std() * np.sqrt(252)
+    high_vol_threshold = rolling_vol.dropna().quantile(0.70)
+    if pd.isna(high_vol_threshold) or high_vol_threshold <= 0:
+        high_vol_threshold = returns.std() * np.sqrt(252) if returns.std() > 0 else 0.25
+
+    threshold_return = 0.03
+    regimes = []
+    for i, row in df.reset_index(drop=True).iterrows():
+        rr = rolling_return.iloc[i]
+        rv = rolling_vol.iloc[i]
+        if pd.isna(rr) or pd.isna(rv):
+            regime_key = 'sideways'
+            regime_label = 'Sideways / Low Signal'
+        elif rr > threshold_return and rv <= high_vol_threshold:
+            regime_key = 'bull'
+            regime_label = 'Bull / Trending Up'
+        elif rr < -threshold_return or rv > high_vol_threshold:
+            regime_key = 'bear_high_vol'
+            regime_label = 'Bear / High Volatility'
+        else:
+            regime_key = 'sideways'
+            regime_label = 'Sideways / Low Signal'
+
+        regimes.append({
+            'step': int(i),
+            'date': str(row['date']),
+            'regime': regime_key,
+            'label': regime_label,
+            'rolling_return': None if pd.isna(rr) else float(rr),
+            'rolling_volatility': None if pd.isna(rv) else float(rv),
+        })
+    return regimes
+
+
+def calculate_regime_metrics(history, regimes, initial_balance=10000):
+    """Calculate per-regime return, Sharpe, drawdown, and action mix."""
+    labels = {
+        'bull': 'Bull / Trending Up',
+        'sideways': 'Sideways / Low Signal',
+        'bear_high_vol': 'Bear / High Volatility',
+    }
+    empty = {
+        key: {
+            'label': label,
+            'total_return': 0.0,
+            'sharpe_ratio': 0.0,
+            'max_drawdown': 0.0,
+            'observations': 0,
+            'action_distribution': {'BUY': 0.0, 'SELL': 0.0, 'HOLD': 0.0},
+        }
+        for key, label in labels.items()
+    }
+    if not history or not regimes:
+        return empty
+
+    regime_by_date = {str(item['date'])[:10]: item['regime'] for item in regimes}
+    grouped = {key: [] for key in labels}
+    for item in history:
+        key = regime_by_date.get(str(item['date'])[:10], 'sideways')
+        grouped.setdefault(key, []).append(item)
+
+    result = {}
+    for key, rows in grouped.items():
+        if not rows:
+            result[key] = empty[key]
+            continue
+        values = np.asarray([r['portfolio_value'] for r in rows], dtype=np.float64)
+        returns = np.asarray([r.get('reward', 0.0) for r in rows], dtype=np.float64)
+        returns = returns[np.isfinite(returns)]
+        base = values[0] if values.size else initial_balance
+        total_return = (values[-1] - base) / (base + 1e-10) if values.size else 0.0
+        sharpe = float(np.mean(returns) / (np.std(returns) + 1e-10) * np.sqrt(252)) if returns.size else 0.0
+        dd = calculate_drawdown_series(values)
+        actions = np.asarray([r.get('action', 0.0) for r in rows], dtype=np.float64)
+        buy = float(np.mean(actions > 0.1)) if actions.size else 0.0
+        sell = float(np.mean(actions < -0.1)) if actions.size else 0.0
+        hold = max(0.0, 1.0 - buy - sell)
+        result[key] = {
+            'label': labels.get(key, key),
+            'total_return': float(total_return),
+            'sharpe_ratio': sharpe,
+            'max_drawdown': float(min(dd)) if dd else 0.0,
+            'observations': int(len(rows)),
+            'action_distribution': {'BUY': buy, 'SELL': sell, 'HOLD': hold},
+        }
+    for key in labels:
+        result.setdefault(key, empty[key])
+    return result
+
+
+def action_distribution(history):
+    """Return BUY/SELL/HOLD proportions for a model history."""
+    if not history:
+        return {'BUY': 0.0, 'SELL': 0.0, 'HOLD': 0.0}
+    actions = np.asarray([h.get('action', 0.0) for h in history], dtype=np.float64)
+    buy = float(np.mean(actions > 0.1))
+    sell = float(np.mean(actions < -0.1))
+    hold = max(0.0, 1.0 - buy - sell)
+    return {'BUY': buy, 'SELL': sell, 'HOLD': hold}
+
+
+def enrich_backtest_result(history, final_value, regimes, initial_balance):
+    """Attach extended metrics and chart-friendly data to a backtest result."""
+    portfolio_values = [float(h['portfolio_value']) for h in history]
+    returns = np.diff(portfolio_values) / (np.asarray(portfolio_values[:-1]) + 1e-10) if len(portfolio_values) > 1 else []
+    actions = [float(h.get('action', 0.0)) for h in history]
+    metrics = calculate_risk_metrics(portfolio_values, returns, actions, initial_balance)
+    dates = [str(h['date']) for h in history]
+    return {
+        'metrics': metrics,
+        'history': history,
+        'portfolio_values': portfolio_values,
+        'dates': dates,
+        'drawdowns': calculate_drawdown_series(portfolio_values),
+        'final_value': float(final_value),
+        'regime_metrics': calculate_regime_metrics(history, regimes, initial_balance),
+        'action_distribution': action_distribution(history),
+        'is_simulation': False,
+    }
+
+
 def buy_and_hold_strategy(df, initial_balance=10000):
     """Buy and Hold baseline strategy"""
     if not PACKAGES_AVAILABLE:
@@ -495,6 +840,90 @@ def buy_and_hold_strategy(df, initial_balance=10000):
         })
 
     return history, final_value
+
+
+def add_technical_indicators(df):
+    """Add the same feature set used by model inference."""
+    df = df.copy()
+    df['sma_10'] = ta.trend.sma_indicator(df['close'], window=10)
+    df['sma_20'] = ta.trend.sma_indicator(df['close'], window=20)
+    df['sma_50'] = ta.trend.sma_indicator(df['close'], window=50)
+    df['rsi'] = ta.momentum.rsi(df['close'], window=14)
+
+    macd = ta.trend.MACD(df['close'])
+    df['macd'] = macd.macd()
+    df['macd_signal'] = macd.macd_signal()
+    df['macd_diff'] = macd.macd_diff()
+
+    bollinger = ta.volatility.BollingerBands(df['close'])
+    df['bb_high'] = bollinger.bollinger_hband()
+    df['bb_low'] = bollinger.bollinger_lband()
+    df['bb_mid'] = bollinger.bollinger_mavg()
+
+    df['atr'] = ta.volatility.average_true_range(df['high'], df['low'], df['close'])
+    df['returns'] = df['close'].pct_change()
+    df['log_returns'] = np.log(df['close'] / df['close'].shift(1))
+    df['volume_sma'] = ta.trend.sma_indicator(df['volume'], window=20)
+    df.dropna(inplace=True)
+    return df
+
+
+def run_single_backtest(df, model_name, model, initial_balance, regimes):
+    """Evaluate one model using loaded artifacts and real market data."""
+    if model is None:
+        raise ValueError(f"{model_name} model artifact is not loaded")
+    env = TradingEnvironment(
+        df,
+        initial_balance,
+        CONFIG['TRANSACTION_COST'],
+        CONFIG['SLIPPAGE'],
+        norm_params=evaluator.norm_params
+    )
+    history, final_value = evaluator.evaluate_model(model, env)
+    return enrich_backtest_result(history, final_value, regimes, initial_balance)
+
+
+def ranking_summary(results):
+    """Build summary ranking cards for comparison analytics."""
+    labels = {
+        'ppo': 'PPO',
+        'cvar': 'CVaR-PPO',
+        'sortino': 'Sortino-PPO',
+        'buy_hold': 'Buy & Hold',
+    }
+
+    def best(metric, reverse=True):
+        candidates = []
+        for key, result in results.items():
+            value = result.get('metrics', {}).get(metric)
+            if value is not None:
+                candidates.append((key, value))
+        if not candidates:
+            return None
+        return sorted(candidates, key=lambda item: item[1], reverse=reverse)[0]
+
+    bear_candidates = []
+    for key, result in results.items():
+        bear = result.get('regime_metrics', {}).get('bear_high_vol', {})
+        value = bear.get('max_drawdown')
+        if value is not None:
+            bear_candidates.append((key, value))
+    bear_best = sorted(bear_candidates, key=lambda item: item[1], reverse=True)[0] if bear_candidates else None
+
+    items = {
+        'best_return': best('total_return', True),
+        'best_sharpe': best('sharpe_ratio', True),
+        'best_sortino': best('sortino_ratio', True),
+        'lowest_max_drawdown': best('max_drawdown', True),
+        'best_bear_regime_defense': bear_best,
+    }
+    return {
+        key: {
+            'model': labels.get(value[0], value[0]) if value else None,
+            'value': float(value[1]) if value else None,
+        }
+        for key, value in items.items()
+    }
 
 
 # ============================================================================
@@ -608,44 +1037,35 @@ class BacktestView(View):
                 if not success:
                     return JsonResponse({'error': message}, status=500)
 
+            regimes = classify_market_regimes(df)
+
             # Run backtest for each model
             results = {}
 
             for model_name, model in [('ppo', evaluator.ppo_model), ('cvar', evaluator.cvar_model), ('sortino', evaluator.sortino_model)]:
-                env = TradingEnvironment(
-                    df,
-                    initial_balance,
-                    CONFIG['TRANSACTION_COST'],
-                    CONFIG['SLIPPAGE'],
-                    norm_params=evaluator.norm_params
-                )
-                history, final_value = evaluator.evaluate_model(model, env)
-                metrics = calculate_metrics(history, initial_balance)
-
-                results[model_name] = {
-                    'metrics': metrics,
-                    'history': history,
-                    'final_value': final_value
-                }
+                results[model_name] = run_single_backtest(df, model_name, model, initial_balance, regimes)
 
             # Buy and Hold
             bh_history, bh_value = buy_and_hold_strategy(df, initial_balance)
-            bh_metrics = calculate_metrics(bh_history, initial_balance)
-
-            results['buy_hold'] = {
-                'metrics': bh_metrics,
-                'history': bh_history,
-                'final_value': bh_value
-            }
+            results['buy_hold'] = enrich_backtest_result(bh_history, bh_value, regimes, initial_balance)
+            results['buy_hold']['is_simulation'] = False
 
             return JsonResponse({
                 'success': True,
                 'results': results,
+                'regimes': regimes,
+                'regime_labels': {
+                    'bull': 'Bull / Trending Up',
+                    'sideways': 'Sideways / Low Signal',
+                    'bear_high_vol': 'Bear / High Volatility',
+                },
+                'is_research_simulation': False,
                 'data_info': {
                     'symbol': symbol,
                     'start_date': start_date,
                     'end_date': end_date,
-                    'num_days': len(df)
+                    'num_days': len(df),
+                    'source': 'yfinance/model artifacts'
                 }
             })
 
@@ -666,11 +1086,7 @@ class RealtimePredictView(View):
             symbol = data.get('symbol', 'SPY')
             requested_model = data.get('model', 'ppo')  # 'ppo', 'cvar', or 'sortino'
 
-            # Get recent data (last 90 days for technical indicators)
-            end_date = datetime.now().strftime('%Y-%m-%d')
-            start_date = (datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')
-
-            df, error = download_and_process_data(symbol, start_date, end_date)
+            df, error = download_realtime_market_data(symbol)
             if error:
                 return JsonResponse({'error': error}, status=400)
 
@@ -702,13 +1118,13 @@ class RealtimePredictView(View):
                 state_tensor = torch.FloatTensor(state).unsqueeze(0)
 
                 if requested_model == 'ppo':
-                    action_tensor, _ = evaluator.ppo_model.act(state_tensor)
+                    action_tensor = evaluator.ppo_model.act_deterministic(state_tensor)
                     action = float(action_tensor.cpu().numpy().flatten()[0])
                 elif requested_model == 'cvar':
-                    action_tensor, _ = evaluator.cvar_model.act(state_tensor)
+                    action_tensor = evaluator.cvar_model.act_deterministic(state_tensor)
                     action = float(action_tensor.cpu().numpy().flatten()[0])
                 elif requested_model == 'sortino':
-                    action_tensor, _ = evaluator.sortino_model.act(state_tensor)
+                    action_tensor = evaluator.sortino_model.act_deterministic(state_tensor)
                     action = float(action_tensor.cpu().numpy().flatten()[0])
                 else:
                     return JsonResponse({'error': 'Invalid model specified'}, status=400)
@@ -743,64 +1159,59 @@ class RealtimePredictView(View):
             return JsonResponse({'error': str(e)}, status=500)
 
 
+@csrf_exempt
 def compare_models(request):
-    """Compare model performance"""
+    """Compare model performance with regime analytics."""
     try:
-        # Load pre-computed results from results.json
-        results_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'results.json')
-        if os.path.exists(results_path):
-            with open(results_path, 'r') as f:
-                results_data = json.load(f)
-            comparison = {
-                'models': ['PPO', 'CVaR-PPO', 'Sortino-PPO', 'Buy & Hold'],
-                'test_results': results_data.get('test_metrics', {})
-            }
+        if request.method == 'POST':
+            payload = json.loads(request.body or '{}')
+            symbol = payload.get('symbol', 'SPY')
+            start_date = payload.get('start_date', '2023-01-01')
+            end_date = payload.get('end_date', datetime.now().strftime('%Y-%m-%d'))
+            initial_balance = float(payload.get('initial_balance', CONFIG['INITIAL_BALANCE']))
         else:
-            # Fallback to hardcoded values
-            comparison = {
-                'models': ['PPO', 'CVaR-PPO', 'Sortino-PPO', 'Buy & Hold'],
-                'test_results': {
-                    'PPO': {
-                        'total_return': 0.1483,
-                        'final_value': 11483.01,
-                        'sharpe_ratio': 1.0476,
-                        'max_drawdown': -0.0544,
-                        'win_rate': 0.5451,
-                        'volatility': 0.0690
-                    },
-                    'CVaR-PPO': {
-                        'total_return': 0.1954,
-                        'final_value': 11953.64,
-                        'sharpe_ratio': 1.0746,
-                        'max_drawdown': -0.0837,
-                        'win_rate': 0.5571,
-                        'volatility': 0.0872
-                    },
-                    'Sortino-PPO': {
-                        'total_return': 0.1414,
-                        'final_value': 11414.24,
-                        'sharpe_ratio': 0.9124,
-                        'max_drawdown': -0.0700,
-                        'win_rate': 0.5471,
-                        'volatility': 0.0753
-                    },
-                    'Buy & Hold': {
-                        'total_return': 0.5882,
-                        'final_value': 15882.05,
-                        'sharpe_ratio': 1.8844,
-                        'max_drawdown': -0.0997,
-                        'win_rate': 0.5760,
-                        'volatility': 0.1281
-                    }
-                }
-            }
+            symbol = request.GET.get('symbol', 'SPY')
+            start_date = request.GET.get('start_date', '2023-01-01')
+            end_date = request.GET.get('end_date', datetime.now().strftime('%Y-%m-%d'))
+            initial_balance = float(request.GET.get('initial_balance', CONFIG['INITIAL_BALANCE']))
+
+        df, error = download_and_process_data(symbol, start_date, end_date)
+        if error:
+            return JsonResponse({'error': error}, status=400)
+
+        if not evaluator.models_loaded:
+            success, message = evaluator.load_models()
+            if not success:
+                return JsonResponse({'error': message}, status=500)
+
+        regimes = classify_market_regimes(df)
+        results = {}
+        for model_name, model in [('ppo', evaluator.ppo_model), ('cvar', evaluator.cvar_model), ('sortino', evaluator.sortino_model)]:
+            results[model_name] = run_single_backtest(df, model_name, model, initial_balance, regimes)
+
+        bh_history, bh_value = buy_and_hold_strategy(df, initial_balance)
+        results['buy_hold'] = enrich_backtest_result(bh_history, bh_value, regimes, initial_balance)
+        results['buy_hold']['is_simulation'] = False
 
         return JsonResponse({
             'success': True,
-            'comparison': comparison
+            'results': results,
+            'regimes': regimes,
+            'ranking': ranking_summary(results),
+            'is_research_simulation': False,
+            'data_info': {
+                'symbol': symbol,
+                'start_date': start_date,
+                'end_date': end_date,
+                'num_days': len(df),
+                'source': 'yfinance/model artifacts',
+            }
         })
 
     except Exception as e:
+        import traceback
+        print(f"Error in compare_models: {str(e)}")
+        print(traceback.format_exc())
         return JsonResponse({'error': str(e)}, status=500)
 
 

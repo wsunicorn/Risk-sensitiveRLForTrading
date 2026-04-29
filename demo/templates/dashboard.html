@@ -2,412 +2,176 @@
 {% load static %}
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng điều khiển - Nền tảng giao dịch RL nhạy cảm với rủi ro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://img.icons8.com/color/48/000000/trading.png" type="image/png">
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --secondary-color: #475569;
-            --success-color: #059669;
-            --warning-color: #d97706;
-            --purple-color: #7c3aed;
-            --dark-color: #111827;
-            --light-color: #f8fafc;
-            --border-color: #e2e8f0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #e5edf7;
-            color: var(--dark-color);
-            margin: 0;
-        }
-
-        .main-container {
-            background: #ffffff;
-            min-height: 100vh;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #1e3a8a, #2563eb);
-            color: white;
-            padding: 3rem 2rem 2.25rem;
-        }
-
-        .header-inner {
-            max-width: 1120px;
-            margin: 0 auto;
-        }
-
-        .header h1 {
-            font-size: clamp(2rem, 4vw, 3rem);
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-
-        .header p {
-            max-width: 760px;
-            font-size: 1.08rem;
-            line-height: 1.65;
-            opacity: 0.94;
-            margin: 0;
-        }
-
-        .nav-strip {
-            background: white;
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 2rem;
-        }
-
-        .nav-inner {
-            max-width: 1120px;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-
-        .nav-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #eff6ff;
-            color: #1d4ed8;
-            border: 1px solid #bfdbfe;
-            padding: 0.75rem 1rem;
-            border-radius: 9px;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .nav-btn:hover {
-            background: #dbeafe;
-            color: #1e40af;
-            text-decoration: none;
-        }
-
-        .section {
-            max-width: 1120px;
-            margin: 0 auto;
-            padding: 2.75rem 2rem;
-        }
-
-        .section-title {
-            font-size: 1.65rem;
-            font-weight: 700;
-            margin-bottom: 0.4rem;
-        }
-
-        .section-subtitle {
-            color: var(--secondary-color);
-            max-width: 760px;
-            margin-bottom: 1.5rem;
-        }
-
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 1rem;
-        }
-
-        .kpi-card,
-        .info-card {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1.2rem;
-        }
-
-        .kpi-card {
-            min-height: 150px;
-        }
-
-        .kpi-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 9px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #dbeafe;
-            color: #1d4ed8;
-            margin-bottom: 0.9rem;
-        }
-
-        .kpi-value {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.15rem;
-        }
-
-        .kpi-label {
-            color: var(--secondary-color);
-            margin: 0;
-        }
-
-        .panel {
-            background: var(--light-color);
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1rem;
-        }
-
-        .info-card h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-
-        .info-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: grid;
-            gap: 0.55rem;
-        }
-
-        .info-list li {
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            border-bottom: 1px solid #eef2f7;
-            padding-bottom: 0.45rem;
-        }
-
-        .info-list li:last-child {
-            border-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .info-list span {
-            color: var(--secondary-color);
-        }
-
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-        }
-
-        .metric-card {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-left: 4px solid var(--primary-color);
-            border-radius: 10px;
-            padding: 1rem;
-        }
-
-        .metric-card h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 0.35rem;
-        }
-
-        .metric-card p {
-            margin: 0;
-            color: var(--secondary-color);
-            line-height: 1.5;
-        }
-
-        .reading-box {
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-            border-left: 5px solid var(--warning-color);
-            border-radius: 10px;
-            padding: 1.25rem;
-        }
-
-        .reading-box h3 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-bottom: 0.7rem;
-        }
-
-        .reading-box ul {
-            margin: 0;
-            padding-left: 1.2rem;
-            color: #78350f;
-        }
-
-        .reading-box li {
-            margin-bottom: 0.35rem;
-        }
-
-        .footer {
-            background: #111827;
-            color: white;
-            text-align: center;
-            padding: 1.5rem 1rem;
-        }
-
-        @media (max-width: 640px) {
-            .header,
-            .section,
-            .nav-strip {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-
-            .info-list li {
-                flex-direction: column;
-                gap: 0.15rem;
-            }
-        }
-    </style>
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Nền tảng giao dịch Risk-Sensitive RL</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://img.icons8.com/color/48/000000/trading.png" type="image/png">
+  <link href="{% static 'css/style.css' %}" rel="stylesheet">
 </head>
-<body>
-    <div class="main-container">
-        <header class="header">
-            <div class="header-inner">
-                <h1><i class="fas fa-tachometer-alt"></i> Bảng điều khiển đồ án</h1>
-                <p>
-                    Tóm tắt cấu hình thực nghiệm, dữ liệu và các chỉ số dùng để đánh giá ba chính sách giao dịch RL:
-                    PPO, CVaR-PPO và Sortino-PPO.
-                </p>
-            </div>
-        </header>
+<body class="dashboard-page">
+  <div class="main-container">
+    <header class="lab-header">
+      <div class="lab-container">
+        <span class="lab-kicker">Academic fintech dashboard</span>
+        <h1><i class="fas fa-tachometer-alt"></i> Dashboard đồ án</h1>
+        <p>
+          Dashboard dùng để định vị nhanh phạm vi dữ liệu, mô hình và các chỉ số
+          đánh giá trước khi vào từng mô hình.
+        </p>
+      </div>
+    </header>
 
-        <nav class="nav-strip">
-            <div class="nav-inner">
-                <a href="/" class="nav-btn"><i class="fas fa-home"></i> Trang chủ</a>
-                <a href="/dashboard" class="nav-btn active"><i class="fas fa-tachometer-alt"></i> Bảng điều khiển</a>
-                <a href="/ppo" class="nav-btn"><i class="fas fa-brain"></i> Mô hình PPO</a>
-                <a href="/cvar" class="nav-btn"><i class="fas fa-shield-alt"></i> Mô hình CVaR-PPO</a>
-                <a href="/sortino" class="nav-btn"><i class="fas fa-chart-line"></i> Mô hình Sortino-PPO</a>
-                <a href="/compare" class="nav-btn"><i class="fas fa-scale-balanced"></i> So sánh mô hình</a>
-            </div>
-        </nav>
+    <nav class="lab-nav">
+      <div class="lab-container lab-nav-inner">
+        <a href="/" class="nav-btn"><i class="fas fa-home"></i> Trang chủ</a>
+        <a href="/dashboard/" class="nav-btn active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/ppo/" class="nav-btn nav-ppo"><i class="fas fa-brain"></i> PPO</a>
+        <a href="/cvar/" class="nav-btn nav-cvar"><i class="fas fa-shield-alt"></i> CVaR-PPO</a>
+        <a href="/sortino/" class="nav-btn nav-sortino"><i class="fas fa-chart-line"></i> Sortino-PPO</a>
+        <a href="/compare/" class="nav-btn"><i class="fas fa-scale-balanced"></i> So sánh mô hình</a>
+      </div>
+    </nav>
 
-        <section class="section">
-            <h2 class="section-title">KPI tổng quan</h2>
-            <p class="section-subtitle">
-                Các con số chính giúp định vị quy mô demo và phạm vi đánh giá.
-            </p>
-            <div class="kpi-grid">
-                <div class="kpi-card">
-                    <div class="kpi-icon"><i class="fas fa-robot"></i></div>
-                    <div class="kpi-value">3</div>
-                    <p class="kpi-label">Mô hình RL được so sánh</p>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-icon"><i class="fas fa-database"></i></div>
-                    <div class="kpi-value">10+</div>
-                    <p class="kpi-label">Năm dữ liệu huấn luyện</p>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-icon"><i class="fas fa-calendar-days"></i></div>
-                    <div class="kpi-value">2,515</div>
-                    <p class="kpi-label">Ngày giao dịch trong bộ dữ liệu</p>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-icon"><i class="fas fa-chart-simple"></i></div>
-                    <div class="kpi-value">6</div>
-                    <p class="kpi-label">Metric đánh giá chính</p>
-                </div>
-            </div>
-        </section>
-
-        <div class="panel">
-            <section class="section">
-                <h2 class="section-title">Tổng quan thực nghiệm</h2>
-                <p class="section-subtitle">
-                    Các thiết lập này quyết định cách mô hình học chính sách và cách kết quả backtest được tính.
-                </p>
-                <div class="info-grid">
-                    <div class="info-card">
-                        <h3><i class="fas fa-table me-2"></i>Dữ liệu</h3>
-                        <ul class="info-list">
-                            <li><span>Mã giao dịch</span><strong>SPY</strong></li>
-                            <li><span>Nguồn dữ liệu</span><strong>Yahoo Finance</strong></li>
-                            <li><span>Giai đoạn</span><strong>2015-2024</strong></li>
-                            <li><span>Chia dữ liệu</span><strong>70/15/15</strong></li>
-                        </ul>
-                    </div>
-                    <div class="info-card">
-                        <h3><i class="fas fa-wallet me-2"></i>Mô phỏng giao dịch</h3>
-                        <ul class="info-list">
-                            <li><span>Vốn ban đầu</span><strong>$10,000</strong></li>
-                            <li><span>Phí giao dịch</span><strong>0.1%</strong></li>
-                            <li><span>Trượt giá</span><strong>0.05%</strong></li>
-                            <li><span>Hành động</span><strong>Mua/Bán/Giữ</strong></li>
-                        </ul>
-                    </div>
-                    <div class="info-card">
-                        <h3><i class="fas fa-brain me-2"></i>Mô hình</h3>
-                        <ul class="info-list">
-                            <li><span>Cơ sở</span><strong>PPO</strong></li>
-                            <li><span>Rủi ro đuôi</span><strong>CVaR-PPO</strong></li>
-                            <li><span>Rủi ro giảm giá</span><strong>Sortino-PPO</strong></li>
-                            <li><span>Kiến trúc</span><strong>Actor-Critic</strong></li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
+    <main>
+      <section class="lab-section">
+        <div class="lab-container">
+          <div class="section-heading compact">
+            <h2>KPI tổng quan</h2>
+            <p>Các con số chính giúp định vị quy mô nghiên cứu và phạm vi đánh giá.</p>
+          </div>
+          <div class="kpi-grid">
+            <article class="kpi-card">
+              <div class="kpi-icon"><i class="fas fa-robot"></i></div>
+              <div class="kpi-value">3</div>
+              <p class="kpi-label">Mô hình RL</p>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-icon"><i class="fas fa-database"></i></div>
+              <div class="kpi-value">10+</div>
+              <p class="kpi-label">Năm dữ liệu huấn luyện</p>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-icon"><i class="fas fa-calendar-days"></i></div>
+              <div class="kpi-value">2,515</div>
+              <p class="kpi-label">Ngày giao dịch</p>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-icon"><i class="fas fa-chart-simple"></i></div>
+              <div class="kpi-value">6</div>
+              <p class="kpi-label">Metric đánh giá chính</p>
+            </article>
+          </div>
+          <div class="dashboard-knowledge">
+            <article>
+              <span>ML trading workflow</span>
+              <strong>Market data -> cleaning -> features -> policy -> backtest -> risk evaluation.</strong>
+            </article>
+            <article>
+              <span>Data Cleaning</span>
+              <strong>Sắp xếp ngày, loại duplicate/missing và bỏ NaN sau indicator warmup.</strong>
+            </article>
+            <article>
+              <span>Overfit risk</span>
+              <strong>Financial ML dễ chịu look-ahead bias, survivorship bias và sample-period bias.</strong>
+            </article>
+            <article>
+              <span>Risk-sensitive RL</span>
+              <strong>Objective đưa tail risk hoặc downside risk vào reward/penalty.</strong>
+            </article>
+          </div>
         </div>
+      </section>
 
-        <section class="section">
-            <h2 class="section-title">Metric chính</h2>
-            <p class="section-subtitle">
-                Các metric này nên được đọc cùng nhau để đánh giá cả lợi nhuận và rủi ro của chính sách giao dịch.
-            </p>
-            <div class="metric-grid">
-                <div class="metric-card">
-                    <h3>Tổng lợi nhuận</h3>
-                    <p>Cho biết danh mục tăng hoặc giảm bao nhiêu trong giai đoạn kiểm tra.</p>
-                </div>
-                <div class="metric-card">
-                    <h3>Sharpe</h3>
-                    <p>Đo lợi nhuận tương đối so với mức biến động tổng thể.</p>
-                </div>
-                <div class="metric-card">
-                    <h3>Sortino</h3>
-                    <p>Tập trung vào biến động bất lợi, phù hợp khi quan tâm rủi ro giảm giá.</p>
-                </div>
-                <div class="metric-card">
-                    <h3>Max Drawdown</h3>
-                    <p>Mức sụt giảm lớn nhất từ đỉnh xuống đáy của giá trị danh mục.</p>
-                </div>
-                <div class="metric-card">
-                    <h3>Volatility</h3>
-                    <p>Độ biến động của lợi nhuận, thể hiện mức ổn định của chiến lược.</p>
-                </div>
-                <div class="metric-card">
-                    <h3>Win Rate</h3>
-                    <p>Tỷ lệ phiên có lợi nhuận dương trong giai đoạn đánh giá.</p>
-                </div>
-            </div>
-        </section>
+      <section class="lab-section lab-section-muted">
+        <div class="lab-container">
+          <div class="section-heading compact">
+            <h2>Tổng quan thực nghiệm</h2>
+            <p>Cấu hình dữ liệu và mô phỏng dùng xuyên suốt các trang model.</p>
+          </div>
+          <div class="info-grid">
+            <article class="info-card">
+              <h3><i class="fas fa-table"></i> Dữ liệu</h3>
+              <ul class="info-list">
+                <li><span>Mã giao dịch</span><strong>SPY</strong></li>
+                <li><span>Nguồn dữ liệu</span><strong>Yahoo Finance</strong></li>
+                <li><span>Giai đoạn</span><strong>2015-2024</strong></li>
+                <li><span>Chia dữ liệu</span><strong>70/15/15</strong></li>
+              </ul>
+            </article>
+            <article class="info-card">
+              <h3><i class="fas fa-wallet"></i> Cấu hình mô phỏng</h3>
+              <ul class="info-list">
+                <li><span>Vốn ban đầu</span><strong>$10,000</strong></li>
+                <li><span>Phí giao dịch</span><strong>0.1%</strong></li>
+                <li><span>Trượt giá</span><strong>0.05%</strong></li>
+                <li><span>Action</span><strong>Mua/Bán/Giữ</strong></li>
+              </ul>
+            </article>
+            <article class="info-card">
+              <h3><i class="fas fa-brain"></i> Mô hình</h3>
+              <ul class="info-list">
+                <li><span>Baseline</span><strong>PPO</strong></li>
+                <li><span>Tail risk</span><strong>CVaR-PPO</strong></li>
+                <li><span>Downside risk</span><strong>Sortino-PPO</strong></li>
+                <li><span>Benchmark</span><strong>Buy &amp; Hold</strong></li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
 
-        <section class="section pt-0">
-            <div class="reading-box">
-                <h3><i class="fas fa-lightbulb me-2"></i>Nên đọc kết quả thế nào?</h3>
-                <ul>
-                    <li>Tổng lợi nhuận cao chưa đủ nếu Max Drawdown cũng rất lớn.</li>
-                    <li>Sharpe và Sortino giúp đánh giá lợi nhuận sau khi xét rủi ro.</li>
-                    <li>CVaR-PPO nên được chú ý trong các giai đoạn thị trường giảm hoặc biến động mạnh.</li>
-                    <li>Sortino-PPO phù hợp khi muốn tập trung vào biến động bất lợi thay vì toàn bộ biến động.</li>
-                    <li>Không dùng kết quả demo này làm khuyến nghị giao dịch thực tế.</li>
-                </ul>
-            </div>
-        </section>
+      <section class="lab-section">
+        <div class="lab-container">
+          <div class="section-heading compact">
+            <h2>Metric đánh giá</h2>
+            <p>Không đọc một metric đơn lẻ. Kết quả nên được xem cùng Return và Risk metrics.</p>
+          </div>
+          <div class="metric-grid dashboard-metrics">
+            <article class="metric-card">
+              <h3>Total Return</h3>
+              <p>Tổng mức tăng/giảm của danh mục.</p>
+            </article>
+            <article class="metric-card">
+              <h3>Sharpe Ratio</h3>
+              <p>Lợi nhuận điều chỉnh theo biến động tổng thể.</p>
+            </article>
+            <article class="metric-card">
+              <h3>Sortino Ratio</h3>
+              <p>Lợi nhuận điều chỉnh theo downside volatility.</p>
+            </article>
+            <article class="metric-card">
+              <h3>Max Drawdown</h3>
+              <p>Mức sụt giảm lớn nhất từ đỉnh xuống đáy.</p>
+            </article>
+            <article class="metric-card">
+              <h3>Volatility</h3>
+              <p>Độ biến động của lợi nhuận.</p>
+            </article>
+            <article class="metric-card">
+              <h3>Win Rate</h3>
+              <p>Tỷ lệ phiên hoặc trade có kết quả dương.</p>
+            </article>
+          </div>
 
-        <footer class="footer">
-            <p class="mb-1">Nền tảng giao dịch RL nhạy cảm với rủi ro | Xây dựng bằng PyTorch & Django</p>
-            <small>Chỉ dành cho mục đích học tập và trình bày đồ án</small>
-        </footer>
-    </div>
+          <aside class="reading-box">
+            <i class="fas fa-lightbulb"></i>
+            <span>
+              Total Return cao cần được kiểm tra cùng Max Drawdown, Sharpe Ratio và
+              Volatility để thấy trade-off giữa lợi nhuận và rủi ro.
+            </span>
+          </aside>
+        </div>
+      </section>
+    </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <footer class="lab-footer">
+      <p>Research prototype cho mục đích học thuật. Không phải khuyến nghị đầu tư.</p>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
