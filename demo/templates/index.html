@@ -14,7 +14,7 @@
 <body class="landing-page">
   <main class="landing-shell">
     <section class="landing-hero">
-      <div class="landing-container landing-hero-grid">
+      <div class="landing-container">
         <div class="landing-hero-copy">
           <span class="landing-badge">
             <i class="fas fa-chart-line"></i>
@@ -22,9 +22,9 @@
           </span>
           <h1>Nền tảng demo giao dịch bằng Risk-Sensitive RL</h1>
           <p>
-            Hệ thống không dự đoán giá trực tiếp. Thay vào đó, mô hình học chính sách
-            giao dịch từ trạng thái thị trường và danh mục, sau đó sinh tín hiệu
-            Mua/Bán/Giữ để đánh giá bằng Backtest và các chỉ số rủi ro.
+            Risk-Sensitive RL Trading Lab không dự đoán giá trực tiếp; hệ thống mô phỏng
+            cách các policy học hành động Mua/Bán/Giữ từ dữ liệu thị trường và trạng
+            thái danh mục, sau đó kiểm chứng bằng mô phỏng danh mục.
           </p>
           <div class="landing-actions">
             <a href="/dashboard/" class="landing-primary-cta">
@@ -35,55 +35,97 @@
           </div>
         </div>
 
-        <aside class="landing-hero-panel" aria-label="Tổng quan Policy Output">
-          <div class="panel-label">Policy Output</div>
-          <div class="action-scale">
-            <span>-1</span>
-            <div class="scale-track">
-              <div class="scale-fill"></div>
+        <div class="hero-research-grid">
+          <aside class="landing-hero-panel research-focus-panel" aria-label="Trọng tâm nghiên cứu">
+            <div class="panel-label">Trọng tâm nghiên cứu</div>
+            <div class="research-focus-list">
+              <div>
+                <i class="fas fa-brain"></i>
+                <span>Tối ưu Policy</span>
+                <p>PPO học policy ổn định qua clipped update.</p>
+              </div>
+              <div>
+                <i class="fas fa-shield-alt"></i>
+                <span>Kiểm soát tail risk</span>
+                <p>CVaR-PPO ưu tiên kiểm soát tổn thất ở nhóm kịch bản xấu.</p>
+              </div>
+              <div>
+                <i class="fas fa-chart-line"></i>
+                <span>Kiểm soát downside risk</span>
+                <p>Sortino-PPO tập trung vào biến động giảm và hiệu quả điều chỉnh rủi ro.</p>
+              </div>
             </div>
-            <span>+1</span>
-          </div>
-          <div class="signal-row">
-            <span class="signal sell">SELL</span>
-            <span class="signal hold">HOLD</span>
-            <span class="signal buy">BUY</span>
-          </div>
+          </aside>
+
+          <aside class="landing-hero-panel policy-flow-panel" aria-label="Luồng policy giao dịch">
+            <div class="panel-label">Luồng policy giao dịch</div>
+            <div class="policy-flow">
+              <div class="flow-step">
+                <strong>Dữ liệu thị trường</strong>
+                <span>OHLCV, volume và giá lịch sử.</span>
+              </div>
+              <div class="flow-step">
+                <strong>Tạo đặc trưng</strong>
+                <span>Tạo SMA, RSI, MACD, Bollinger Bands, returns.</span>
+              </div>
+              <div class="flow-step">
+                <strong>Vector trạng thái</strong>
+                <span>Ghép đặc trưng thị trường với trạng thái danh mục.</span>
+              </div>
+              <div class="flow-step">
+                <strong>Mạng policy</strong>
+                <span>PPO, CVaR-PPO hoặc Sortino-PPO sinh Action liên tục.</span>
+              </div>
+              <div class="flow-step">
+                <strong>Ánh xạ tín hiệu</strong>
+                <span>Action được map thành Sell / Hold / Buy.</span>
+              </div>
+              <div class="flow-step">
+                <strong>Đánh giá backtest</strong>
+                <span>Đọc kết quả qua Equity Curve, Return và Risk metrics.</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="hero-core-idea">
+          <h2>Ý tưởng cốt lõi</h2>
           <p>
-            Policy không dự đoán giá ngày mai. Nó nhận OHLCV, chỉ báo kỹ thuật và
-            trạng thái danh mục để sinh hành động giao dịch.
+            Hệ thống mô hình hóa giao dịch như một bài toán ra quyết định tuần tự.
+            Từ trạng thái thị trường, chỉ báo kỹ thuật và trạng thái danh mục, policy
+            học cách chọn Action sao cho cân bằng giữa lợi nhuận kỳ vọng và rủi ro.
+            Kết quả được kiểm chứng bằng Equity Curve và Drawdown thay vì chỉ nhìn
+            vào lợi nhuận đơn lẻ.
           </p>
-        </aside>
+        </div>
       </div>
     </section>
 
-    <section class="landing-section" id="core-idea">
+    <section class="landing-section landing-muted" id="risk-sensitive">
       <div class="landing-container">
-        <div class="section-heading">
-          <span>Core Idea</span>
-          <h2>Ý tưởng cốt lõi: học chính sách, không dự đoán giá</h2>
+        <div class="section-heading compact">
+          <h2>Vì sao cần Risk-Sensitive RL?</h2>
           <p>
-            Bài toán của project là so sánh cách các mô hình RL ra quyết định giao dịch
-            khi xét đến lợi nhuận và rủi ro. Đầu ra không phải giá cổ phiếu, mà là
-            hành động giao dịch.
+            Trading strategy cần được đánh giá qua rủi ro vốn, tail event và độ ổn định
+            trong nhiều điều kiện thị trường.
           </p>
         </div>
 
         <div class="landing-card-grid three">
-          <article class="landing-card">
-            <div class="card-kicker">01</div>
-            <h3>Trạng thái thị trường</h3>
-            <p>OHLCV, volume, technical indicators và thông tin danh mục.</p>
+          <article class="landing-card risk-card">
+            <i class="fas fa-scale-balanced"></i>
+            <h3>Chỉ lợi nhuận là chưa đủ</h3>
+            <p>Một policy có lợi nhuận cao vẫn có thể kém nếu Drawdown lớn hoặc tail loss nghiêm trọng.</p>
           </article>
-          <article class="landing-card">
-            <div class="card-kicker">02</div>
-            <h3>Hành động từ policy</h3>
-            <p>Mạng policy sinh action liên tục trong khoảng [-1, 1].</p>
+          <article class="landing-card risk-card">
+            <i class="fas fa-triangle-exclamation"></i>
+            <h3>Rủi ro bất đối xứng</h3>
+            <p>Trong tài chính, thua lỗ lớn thường quan trọng hơn biến động tăng, nên cần metric như Sortino và CVaR.</p>
           </article>
-          <article class="landing-card">
-            <div class="card-kicker">03</div>
-            <h3>Tín hiệu giao dịch</h3>
-            <p>Action được chuyển thành BUY, SELL hoặc HOLD để mô phỏng danh mục.</p>
+          <article class="landing-card risk-card">
+            <i class="fas fa-layer-group"></i>
+            <h3>Market regime thay đổi</h3>
+            <p>Policy cần được kiểm tra trong bull, sideways và bear/high-volatility regime để tránh kết luận từ một giai đoạn thuận lợi.</p>
           </article>
         </div>
       </div>
@@ -92,46 +134,50 @@
     <section class="landing-section landing-muted" id="workflow">
       <div class="landing-container">
         <div class="section-heading compact">
-          <span>Decision Pipeline</span>
-          <h2>Luồng hoạt động của hệ thống</h2>
-          <p>Từ dữ liệu thị trường đến tín hiệu giao dịch và đánh giá hiệu quả danh mục.</p>
+          <h2>Luồng hoạt động</h2>
+          <p>Từ dữ liệu thị trường đến tín hiệu giao dịch và mô phỏng danh mục.</p>
         </div>
 
         <div class="workflow-grid">
           <article class="workflow-step">
             <span class="workflow-index">1</span>
-            <strong>Market Data</strong>
-            <p>Lấy dữ liệu OHLCV từ Yahoo Finance.</p>
+            <strong>Dữ liệu thị trường</strong>
+            <p>Lấy dữ liệu OHLCV.</p>
           </article>
           <article class="workflow-step">
             <span class="workflow-index">2</span>
-            <strong>Feature Engineering</strong>
-            <p>Tạo SMA, RSI, MACD, Bollinger Bands, returns...</p>
+            <strong>Làm sạch dữ liệu</strong>
+            <p>Sắp xếp ngày, bỏ duplicate/missing và warmup NaN.</p>
           </article>
           <article class="workflow-step">
             <span class="workflow-index">3</span>
-            <strong>Normalization</strong>
-            <p>Chuẩn hóa đặc trưng bằng tham số từ tập train.</p>
+            <strong>Tạo đặc trưng</strong>
+            <p>Tạo SMA, RSI, MACD, Bollinger Bands và returns.</p>
           </article>
           <article class="workflow-step">
             <span class="workflow-index">4</span>
-            <strong>RL Environment</strong>
-            <p>Mô phỏng vốn, vị thế, phí giao dịch và trượt giá.</p>
+            <strong>Chuẩn hóa</strong>
+            <p>Chuẩn hóa feature theo tập train.</p>
           </article>
           <article class="workflow-step">
             <span class="workflow-index">5</span>
-            <strong>Policy Network</strong>
-            <p>PPO/CVaR-PPO/Sortino-PPO sinh action.</p>
+            <strong>Môi trường RL</strong>
+            <p>Mô phỏng vốn, vị thế và phí.</p>
           </article>
           <article class="workflow-step">
             <span class="workflow-index">6</span>
-            <strong>Trading Signal</strong>
-            <p>Map action thành BUY/SELL/HOLD.</p>
+            <strong>Mạng policy</strong>
+            <p>Sinh Action từ trạng thái.</p>
           </article>
           <article class="workflow-step">
             <span class="workflow-index">7</span>
-            <strong>Backtest &amp; Metrics</strong>
-            <p>Đánh giá bằng return, Sharpe, drawdown, volatility.</p>
+            <strong>Tín hiệu</strong>
+            <p>Map thành BUY / SELL / HOLD.</p>
+          </article>
+          <article class="workflow-step">
+            <span class="workflow-index">8</span>
+            <strong>Backtest</strong>
+            <p>Đánh giá Return, Drawdown và Risk metrics.</p>
           </article>
         </div>
       </div>
@@ -140,128 +186,65 @@
     <section class="landing-section" id="models">
       <div class="landing-container">
         <div class="section-heading compact">
-          <span>Models</span>
-          <h2>Các chiến lược/mô hình được so sánh</h2>
-          <p>Mỗi mô hình đại diện cho một cách cân bằng khác nhau giữa lợi nhuận kỳ vọng và rủi ro.</p>
+          <h2>Các phương pháp được so sánh</h2>
+          <p>Mỗi phương pháp thể hiện một cách cân bằng lợi nhuận và rủi ro.</p>
         </div>
 
         <div class="landing-card-grid four">
           <article class="landing-card model ppo">
-            <span class="model-tag">Risk-neutral baseline</span>
+            <span class="model-tag">Risk-neutral</span>
             <h3>PPO</h3>
             <p>Baseline trung lập rủi ro, tối ưu lợi nhuận kỳ vọng.</p>
           </article>
           <article class="landing-card model cvar">
-            <span class="model-tag">Downside tail risk</span>
+            <span class="model-tag">Tail-risk aware</span>
             <h3>CVaR-PPO</h3>
-            <p>Tập trung vào rủi ro đuôi, phạt các kịch bản lợi nhuận xấu.</p>
+            <p>Nhấn mạnh rủi ro đuôi, phạt nhóm kết quả xấu.</p>
           </article>
           <article class="landing-card model sortino">
-            <span class="model-tag">Downside volatility</span>
+            <span class="model-tag">Downside-risk aware</span>
             <h3>Sortino-PPO</h3>
-            <p>Tập trung vào biến động bất lợi, phù hợp khi quan tâm rủi ro giảm giá.</p>
+            <p>Tập trung downside volatility.</p>
           </article>
           <article class="landing-card model baseline">
-            <span class="model-tag">Passive benchmark</span>
+            <span class="model-tag">Benchmark</span>
             <h3>Buy &amp; Hold</h3>
-            <p>Chiến lược chuẩn so sánh, mua và giữ tài sản xuyên suốt giai đoạn.</p>
+            <p>Benchmark thụ động để đối chiếu với các policy RL.</p>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="landing-section landing-muted" id="capabilities">
+    <section class="landing-section landing-muted" id="backtest-interpretation">
       <div class="landing-container">
         <div class="section-heading compact">
-          <span>Demo Capabilities</span>
-          <h2>Người dùng có thể demo gì?</h2>
-          <p>Ba workflow chính giúp kiểm tra tín hiệu, backtest từng mô hình và so sánh các chiến lược.</p>
-        </div>
-
-        <div class="landing-card-grid three">
-          <article class="landing-card capability">
-            <i class="fas fa-bolt"></i>
-            <h3>Realtime Signal</h3>
-            <p>Nhập mã cổ phiếu để lấy action hiện tại và tín hiệu BUY/SELL/HOLD.</p>
-          </article>
-          <article class="landing-card capability">
-            <i class="fas fa-clock-rotate-left"></i>
-            <h3>Backtest</h3>
-            <p>Chạy mô phỏng trên giai đoạn lịch sử để xem Portfolio Value, return và drawdown.</p>
-          </article>
-          <article class="landing-card capability">
-            <i class="fas fa-scale-balanced"></i>
-            <h3>Model Comparison</h3>
-            <p>So sánh PPO, CVaR-PPO, Sortino-PPO và Buy &amp; Hold trên cùng bộ metric.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="landing-section" id="metrics">
-      <div class="landing-container">
-        <div class="section-heading compact">
-          <span>Evaluation Metrics</span>
-          <h2>Đánh giá không chỉ bằng lợi nhuận</h2>
-          <p>Project dùng nhiều metric để nhìn đồng thời hiệu quả sinh lời và mức rủi ro.</p>
-        </div>
-
-        <div class="metric-card-list">
-          <article class="metric-info-card">
-            <strong>Total Return</strong>
-            <p>Tổng lợi nhuận của danh mục.</p>
-          </article>
-          <article class="metric-info-card">
-            <strong>Sharpe Ratio</strong>
-            <p>Lợi nhuận điều chỉnh theo biến động tổng thể.</p>
-          </article>
-          <article class="metric-info-card">
-            <strong>Sortino Ratio</strong>
-            <p>Lợi nhuận điều chỉnh theo biến động giảm giá.</p>
-          </article>
-          <article class="metric-info-card">
-            <strong>Max Drawdown</strong>
-            <p>Mức sụt giảm lớn nhất từ đỉnh xuống đáy.</p>
-          </article>
-          <article class="metric-info-card">
-            <strong>Volatility</strong>
-            <p>Độ biến động của lợi nhuận.</p>
-          </article>
-          <article class="metric-info-card">
-            <strong>Win Rate</strong>
-            <p>Tỷ lệ phiên/trade có kết quả dương.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="landing-section landing-muted" id="how-to-demo">
-      <div class="landing-container">
-        <div class="section-heading compact">
-          <span>How to Demo</span>
-          <h2>Cách trình bày demo nhanh</h2>
+          <h2>Diễn giải backtest và regime</h2>
+          <p>
+            Backtest cho thấy Equity Curve, Drawdown và Metric điều chỉnh theo rủi ro
+            của từng policy trong từng giai đoạn thị trường.
+          </p>
         </div>
 
         <div class="demo-steps">
           <article class="demo-step">
             <span>1</span>
             <div>
-              <strong>Mở Trading Lab</strong>
-              <p>Chọn một mô hình hoặc trang so sánh.</p>
+              <strong>Equity Curve</strong>
+              <p>Cho thấy quá trình tăng giảm vốn và các pha mất đà của danh mục.</p>
             </div>
           </article>
           <article class="demo-step">
             <span>2</span>
             <div>
-              <strong>Chạy Realtime Signal hoặc Backtest</strong>
-              <p>Quan sát action, tín hiệu và giá trị danh mục.</p>
+              <strong>Metric điều chỉnh theo rủi ro</strong>
+              <p>Sharpe, Sortino, Calmar và Max Drawdown đo return trong tương quan với rủi ro.</p>
             </div>
           </article>
           <article class="demo-step">
             <span>3</span>
             <div>
-              <strong>Giải thích trade-off</strong>
-              <p>So sánh return, Sharpe, Max Drawdown và Win Rate giữa các phương pháp.</p>
+              <strong>Market regime</strong>
+              <p>Bull, sideways và bear/high-volatility regime cho thấy độ ổn định của policy.</p>
             </div>
           </article>
         </div>

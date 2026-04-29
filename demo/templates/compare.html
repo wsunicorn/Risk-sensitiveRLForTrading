@@ -25,7 +25,6 @@
       type="image/png"
     />
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
       :root {
         --primary-color: #dc2626;
@@ -340,125 +339,100 @@
     </style>
     <link href="{% static 'css/style.css' %}" rel="stylesheet" />
   </head>
-  <body>
+  <body class="compare-page">
     <div class="main-container">
-      <!-- Header -->
-      <div class="header">
-        <h1><i class="fas fa-balance-scale"></i> So sánh chiến lược</h1>
-        <p>
-          So sánh chiến lược giao dịch RL trung lập rủi ro và nhạy cảm với rủi
-          ro
-        </p>
-        <div class="model-badge">
-          <i class="fas fa-balance-scale"></i> PPO vs CVaR-PPO vs Sortino-PPO
+      <header class="lab-header compare-header">
+        <div class="lab-container">
+          <span class="lab-kicker">Research comparison dashboard</span>
+          <h1><i class="fas fa-scale-balanced"></i> So sánh chiến lược</h1>
+          <p>
+            Đọc hiệu suất của các policy RL qua Return, Drawdown, Sharpe,
+            Volatility và Equity Curve trên cùng một giai đoạn backtest.
+          </p>
+          <span class="model-badge">
+            <i class="fas fa-layer-group"></i> PPO vs CVaR-PPO vs Sortino-PPO vs Buy &amp; Hold
+          </span>
         </div>
-      </div>
+      </header>
 
-      <!-- Navigation -->
-      <div class="text-center py-3 bg-light">
-        <a href="/" class="nav-btn"> <i class="fas fa-home"></i> Trang chủ </a>
-        <a href="/dashboard" class="nav-btn">
-          <i class="fas fa-tachometer-alt"></i> Bảng điều khiển
-        </a>
-        <a href="/ppo" class="nav-btn" style="background: #2563eb">
-          <i class="fas fa-brain"></i> PPO
-        </a>
-        <a href="/cvar" class="nav-btn" style="background: #059669">
-          <i class="fas fa-shield-alt"></i> CVaR-PPO
-        </a>
-        <a href="/sortino" class="nav-btn" style="background: #7c3aed">
-          <i class="fas fa-chart-line"></i> Sortino-PPO
-        </a>
-        <a href="/compare" class="nav-btn active">
-          <i class="fas fa-balance-scale"></i> So sánh mô hình
-        </a>
-      </div>
-
-      <!-- Content -->
-      <div class="content-section">
-        <!-- Model Overview Cards -->
-        <div class="comparison-grid">
-          <div class="model-comparison-card ppo">
-            <div class="model-icon">
-              <i class="fas fa-brain"></i>
-            </div>
-            <h4>PPO (Trung lập rủi ro)</h4>
-            <p>
-              Mô hình cơ sở tối đa hóa lợi nhuận kỳ vọng mà không có quản trị
-              rủi ro rõ ràng.
-            </p>
-            <div class="mt-3">
-              <small class="text-muted">
-                <i class="fas fa-chart-line"></i> Trọng tâm: Lợi nhuận kỳ
-                vọng<br />
-                <i class="fas fa-exclamation-triangle"></i> Rủi ro: Độ lệch
-                chuẩn
-              </small>
-            </div>
-          </div>
-
-          <div class="model-comparison-card cvar">
-            <div class="model-icon">
-              <i class="fas fa-shield-alt"></i>
-            </div>
-            <h4>CVaR-PPO (Nhạy cảm với rủi ro)</h4>
-            <p>
-              Cách tiếp cận nhạy cảm với rủi ro, dùng ràng buộc CVaR để quản lý
-              rủi ro đuôi.
-            </p>
-            <div class="mt-3">
-              <small class="text-muted">
-                <i class="fas fa-shield-alt"></i> Trọng tâm: Bảo vệ khi thị
-                trường giảm<br />
-                <i class="fas fa-chart-area"></i> Rủi ro: Rủi ro đuôi (15%)
-              </small>
-            </div>
-          </div>
-
-          <div class="model-comparison-card sortino">
-            <div class="model-icon">
-              <i class="fas fa-chart-line"></i>
-            </div>
-            <h4>Sortino-PPO (Điều chỉnh theo rủi ro)</h4>
-            <p>
-              Cách tiếp cận điều chỉnh theo rủi ro, tập trung vào biến động giảm
-              giá.
-            </p>
-            <div class="mt-3">
-              <small class="text-muted">
-                <i class="fas fa-target"></i> Trọng tâm: Lợi nhuận điều chỉnh
-                theo rủi ro<br />
-                <i class="fas fa-balance-scale"></i> Rủi ro: Độ lệch giảm giá
-              </small>
-            </div>
-          </div>
+      <nav class="lab-nav">
+        <div class="lab-container lab-nav-inner">
+          <a href="/" class="nav-btn"><i class="fas fa-home"></i> Trang chủ</a>
+          <a href="/dashboard/" class="nav-btn"
+            ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+          >
+          <a href="/ppo/" class="nav-btn nav-ppo"
+            ><i class="fas fa-brain"></i> PPO</a
+          >
+          <a href="/cvar/" class="nav-btn nav-cvar"
+            ><i class="fas fa-shield-alt"></i> CVaR-PPO</a
+          >
+          <a href="/sortino/" class="nav-btn nav-sortino"
+            ><i class="fas fa-chart-line"></i> Sortino-PPO</a
+          >
+          <a href="/compare/" class="nav-btn active"
+            ><i class="fas fa-scale-balanced"></i> So sánh mô hình</a
+          >
         </div>
+      </nav>
 
-        <!-- Comparison Form -->
-        <div class="row">
-          <div class="col-lg-10 mx-auto">
-            <div class="card">
-              <div class="card-header">
-                <h5 class="card-title">
-                  <i class="fas fa-chart-bar"></i> Chạy So sánh Mô hình
-                </h5>
-              </div>
-              <div class="card-body">
-                <div class="alert alert-info">
-                  <h6><i class="fas fa-info-circle"></i> Tổng quan so sánh:</h6>
-                  <p class="mb-0">
-                    Phân tích này so sánh cả ba mô hình trên cùng một bộ dữ liệu
-                    thị trường. Bạn sẽ thấy các cách tiếp cận trung lập rủi ro,
-                    nhạy cảm với rủi ro và điều chỉnh theo rủi ro hoạt động khác
-                    nhau như thế nào.
-                  </p>
-                </div>
+      <main class="lab-container compare-content">
+        <section class="compare-model-grid" aria-label="Tóm tắt mô hình">
+          <article class="compare-model-card ppo">
+            <div class="compare-model-icon"><i class="fas fa-brain"></i></div>
+            <h3>PPO</h3>
+            <p>Baseline risk-neutral, tối ưu lợi nhuận kỳ vọng.</p>
+            <div class="model-chip-row">
+              <span>Objective: Return</span>
+              <span>Risk Focus: Volatility</span>
+              <span>Signal: Reactive</span>
+            </div>
+          </article>
 
-                <form id="comparisonForm" method="post">
+          <article class="compare-model-card cvar">
+            <div class="compare-model-icon"><i class="fas fa-shield-alt"></i></div>
+            <h3>CVaR-PPO</h3>
+            <p>Ưu tiên kiểm soát tail risk trong các kịch bản xấu.</p>
+            <div class="model-chip-row">
+              <span>Objective: Tail Risk</span>
+              <span>Risk Focus: CVaR</span>
+              <span>Signal: Defensive</span>
+            </div>
+          </article>
+
+          <article class="compare-model-card sortino">
+            <div class="compare-model-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>Sortino-PPO</h3>
+            <p>Tập trung downside risk và hiệu suất điều chỉnh rủi ro.</p>
+            <div class="model-chip-row">
+              <span>Objective: Sortino</span>
+              <span>Risk Focus: Downside</span>
+              <span>Signal: Balanced</span>
+            </div>
+          </article>
+        </section>
+
+        <section class="model-card-shell compare-run-card">
+          <div class="card-header-soft">
+            <h2><i class="fas fa-flask"></i> Thiết lập so sánh</h2>
+            <p>
+              Chạy cùng một giai đoạn dữ liệu cho PPO, CVaR-PPO, Sortino-PPO và
+              Buy &amp; Hold để đọc Risk-Return trade-off.
+            </p>
+          </div>
+          <div class="compare-run-body">
+            <aside class="compact-callout">
+              <i class="fas fa-circle-info"></i>
+              <span>
+                Kết quả được đánh giá bằng Equity Curve, Drawdown, Sharpe,
+                Volatility và Win Rate. Không tự động chạy khi mở trang.
+              </span>
+            </aside>
+
+            <form id="comparisonForm" method="post" class="backtest-form compare-form">
                   {% csrf_token %}
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="form-group mb-3">
+              <div class="form-grid">
+                <div class="form-group">
                         <label for="comparisonSymbol" class="form-label">
                           <i class="fas fa-search"></i> Mã Chứng khoán
                         </label>
@@ -472,10 +446,8 @@
                         <small class="text-muted"
                           >SPY trùng với dữ liệu huấn luyện</small
                         >
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group mb-3">
+                </div>
+                <div class="form-group">
                         <label
                           for="comparisonInitialBalance"
                           class="form-label"
@@ -489,13 +461,9 @@
                           value="10000"
                         />
                         <small class="text-muted">Mặc định: $10,000</small>
-                      </div>
-                    </div>
-                  </div>
+                </div>
 
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="form-group mb-3">
+                <div class="form-group">
                         <label for="comparisonStartDate" class="form-label">
                           <i class="fas fa-calendar-alt"></i> Ngày bắt đầu
                         </label>
@@ -508,10 +476,8 @@
                         <small class="text-muted"
                           >Sau giai đoạn huấn luyện (sau tháng 01/2022)</small
                         >
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group mb-3">
+                </div>
+                <div class="form-group">
                         <label for="comparisonEndDate" class="form-label">
                           <i class="fas fa-calendar-alt"></i> Ngày kết thúc
                         </label>
@@ -524,16 +490,15 @@
                         <small class="text-muted"
                           >Giai đoạn kiểm thử để so sánh</small
                         >
-                      </div>
-                    </div>
-                  </div>
+                </div>
+              </div>
 
-                  <div class="text-center">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                      <i class="fas fa-play"></i> Chạy So sánh Mô hình
-                    </button>
-                  </div>
-                </form>
+              <div class="compare-actions">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="fas fa-play"></i> Chạy so sánh mô hình
+                </button>
+              </div>
+            </form>
                 <div
                   id="cmpError"
                   class="alert alert-danger"
@@ -549,10 +514,14 @@
                     hình</small
                   >
                 </div>
-              </div>
-            </div>
+                <div
+                  id="comparisonInitialState"
+                  class="alert alert-secondary mt-3 mb-0"
+                >
+                  Chưa chạy so sánh. Nhấn Chạy so sánh mô hình để xem kết quả.
+                </div>
           </div>
-        </div>
+        </section>
 
         <!-- Comparison Results -->
         <div
@@ -562,62 +531,61 @@
         >
           <div class="row">
             <div class="col-12">
-              <h3 class="text-center mb-4">Kết quả So sánh Mô hình</h3>
-
-              <!-- Quick Summary -->
-              <div id="comparisonSummary" class="comparison-summary-grid"></div>
-
-              <!-- Performance Chart -->
-              <div class="card mb-4">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">
-                    <i class="fas fa-chart-line"></i> So sánh Hiệu suất Danh mục
-                  </h5>
-                </div>
-                <div class="card-body">
-                  <div id="comparisonChart" style="height: 500px"></div>
-                  <div class="model-legend">
-                    <div class="legend-item">
-                      <div
-                        class="legend-color"
-                        style="background: #2563eb"
-                      ></div>
-                      <span>PPO (Trung lập rủi ro)</span>
-                    </div>
-                    <div class="legend-item">
-                      <div
-                        class="legend-color"
-                        style="background: #059669"
-                      ></div>
-                      <span>CVaR-PPO (Nhạy cảm với rủi ro)</span>
-                    </div>
-                    <div class="legend-item">
-                      <div
-                        class="legend-color"
-                        style="background: #7c3aed"
-                      ></div>
-                      <span>Sortino-PPO (Điều chỉnh theo rủi ro)</span>
-                    </div>
-                    <div class="legend-item">
-                      <div
-                        class="legend-color"
-                        style="background: #6b7280"
-                      ></div>
-                      <span>Mua và Giữ (Chuẩn so sánh)</span>
-                    </div>
-                  </div>
-                </div>
+              <div class="result-heading">
+                <span class="lab-kicker">Backtest comparison</span>
+                <h2>Kết quả so sánh mô hình</h2>
+                <p>
+                  Tổng hợp KPI, biểu đồ và nhận định nhanh từ dữ liệu API
+                  compare hiện có.
+                </p>
               </div>
 
-              <!-- Metrics Table -->
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">
-                    <i class="fas fa-table"></i> So sánh chỉ số hiệu suất
-                  </h5>
+              <div id="comparisonSummary" class="comparison-summary-grid"></div>
+
+              <section class="model-card-shell chart-card">
+                <div class="card-header-soft chart-card-header">
+                  <div>
+                    <h2><i class="fas fa-chart-line"></i> Đường vốn (Equity Curve)</h2>
+                    <p id="comparisonPeriod">Portfolio Value theo thời gian.</p>
+                  </div>
                 </div>
-                <div class="card-body">
-                  <div class="table-responsive">
+                <div class="chart-body">
+                  <div id="comparisonChart" class="compare-primary-chart"></div>
+                </div>
+              </section>
+
+              <section class="compare-chart-grid">
+                <article class="model-card-shell chart-card">
+                  <div class="card-header-soft">
+                    <h2><i class="fas fa-chart-simple"></i> So sánh metric</h2>
+                    <p>Total Return, Sharpe, Drawdown, Volatility và Win Rate.</p>
+                  </div>
+                  <div class="chart-body">
+                    <div id="metricBarChart" class="compare-analysis-chart"></div>
+                  </div>
+                </article>
+
+                <article class="model-card-shell chart-card">
+                  <div class="card-header-soft">
+                    <h2><i class="fas fa-water"></i> Drawdown</h2>
+                    <p>Mức sụt giảm từ đỉnh danh mục, tính từ Equity Curve.</p>
+                  </div>
+                  <div class="chart-body">
+                    <div id="drawdownComparisonChart" class="compare-analysis-chart"></div>
+                  </div>
+                </article>
+              </section>
+
+              <!-- Metrics Table -->
+              <section class="model-card-shell compare-table-card">
+                <div class="card-header-soft">
+                  <h2>
+                    <i class="fas fa-table"></i> So sánh chỉ số hiệu suất
+                  </h2>
+                  <p>Best value từng metric được tô nhẹ để dễ đọc.</p>
+                </div>
+                <div class="compare-table-wrap">
+                  <div class="table-responsive research-table-scroll">
                     <table class="results-table w-100">
                       <thead>
                         <tr>
@@ -637,83 +605,114 @@
                     </table>
                   </div>
                 </div>
-              </div>
+              </section>
 
-              <!-- Analysis Summary -->
-              <div class="row mt-4">
-                <div class="col-lg-10 mx-auto">
-                  <div class="card">
-                    <div class="card-header">
-                      <h5 class="card-title">
-                        <i class="fas fa-lightbulb"></i> Tóm tắt phân tích
-                      </h5>
-                    </div>
-                    <div class="card-body">
-                      <div class="row">
-                        <div class="col-md-6">
-                          <h6>Trung lập rủi ro (PPO)</h6>
-                          <p>
-                            Tối đa hóa lợi nhuận kỳ vọng nhưng có thể trải qua
-                            biến động cao hơn và giảm giá trong điều kiện thị
-                            trường bất lợi.
-                          </p>
-                        </div>
-                        <div class="col-md-6">
-                          <h6>Các cách tiếp cận có xét rủi ro</h6>
-                          <p>
-                            CVaR-PPO và Sortino-PPO tập trung vào quản trị rủi
-                            ro, có thể đánh đổi một phần lợi nhuận để tăng khả
-                            năng bảo vệ khi thị trường giảm.
-                          </p>
-                        </div>
+              <!-- Regime Analysis -->
+              <section class="model-card-shell">
+                <div class="card-header-soft">
+                  <h2>
+                    <i class="fas fa-layer-group"></i> Phân tích theo Market Regime
+                  </h2>
+                  <p>
+                    Regime được ước lượng từ Equity Curve bằng rolling return và
+                    rolling volatility; đây là phân tích diễn giải từ backtest output.
+                  </p>
+                </div>
+                <div class="compare-regime-body">
+                  <div class="regime-explain-grid">
+                    <article class="regime-card bull">
+                      <span>Bull / Trending Up</span>
+                      <p>Thị trường tăng rõ, benchmark Buy &amp; Hold thường có lợi thế.</p>
+                    </article>
+                    <article class="regime-card sideways">
+                      <span>Sideways / Mixed</span>
+                      <p>Thị trường đi ngang, cần xem policy có tránh giao dịch nhiễu hay không.</p>
+                    </article>
+                    <article class="regime-card bear">
+                      <span>Bear / High Volatility</span>
+                      <p>Thị trường giảm hoặc biến động mạnh, Drawdown/CVaR quan trọng hơn return đơn thuần.</p>
+                    </article>
+                  </div>
+
+                  <div class="regime-chart-panel">
+                    <div class="regime-chart-toolbar">
+                      <div>
+                        <h3>Hiệu suất theo regime</h3>
+                        <p>Grouped bar ước lượng từ return và volatility của Equity Curve.</p>
                       </div>
-                      <div class="alert alert-info mt-3">
-                        <h6>
-                          <i class="fas fa-exclamation-triangle"></i> Những hiểu
-                          biết chính:
-                        </h6>
-                        <ul class="mb-0">
-                          <li>
-                            <strong>Cân bằng rủi ro-lợi nhuận:</strong> Các mô
-                            hình có xét rủi ro thường thể hiện hành vi thận
-                            trọng hơn
-                          </li>
-                          <li>
-                            <strong>Điều kiện thị trường:</strong> Hiệu suất có
-                            thể thay đổi rõ rệt giữa thị trường tăng và giảm
-                          </li>
-                          <li>
-                            <strong>Chỉ số rủi ro:</strong> Mỗi mô hình phù hợp
-                            với một cách đo rủi ro khác nhau
-                          </li>
-                          <li>
-                            <strong>Lựa chọn chiến lược:</strong> Cần dựa trên
-                            mức chịu rủi ro và mục tiêu đầu tư giả định
-                          </li>
-                        </ul>
+                      <div class="regime-toggle" role="group" aria-label="Chọn metric regime">
+                        <button type="button" class="active" data-regime-metric="total_return">
+                          Total Return
+                        </button>
+                        <button type="button" data-regime-metric="sharpe">
+                          Sharpe
+                        </button>
+                        <button type="button" data-regime-metric="max_drawdown">
+                          Max Drawdown
+                        </button>
                       </div>
                     </div>
+                    <div id="regimePerformanceChart" class="compare-analysis-chart"></div>
+                  </div>
+
+                  <div id="regimeInsightCards" class="regime-insight-grid">
+                    <article>
+                      <strong>Bull regime</strong>
+                      <span>Chạy so sánh để xem model nổi bật theo return.</span>
+                    </article>
+                    <article>
+                      <strong>Bear / High Volatility</strong>
+                      <span>Chạy so sánh để đọc Drawdown và risk-adjusted metrics.</span>
+                    </article>
+                    <article>
+                      <strong>Risk-sensitive RL</strong>
+                      <span>Giá trị chính nằm ở kiểm soát rủi ro, không chỉ thắng return tuyệt đối.</span>
+                    </article>
+                  </div>
+                  <div id="comparisonConclusion" class="comparison-conclusion">
+                    Chạy so sánh để xem kết luận từ dữ liệu backtest.
                   </div>
                 </div>
-              </div>
+              </section>
+
+              <section class="model-card-shell quick-read-shell">
+                <div class="card-header-soft">
+                  <h2><i class="fas fa-compass"></i> Cách đọc kết quả</h2>
+                  <p>
+                    Dùng các chỉ báo chính để đọc trade-off, không xem một metric riêng lẻ.
+                  </p>
+                </div>
+                <div class="quick-read-grid">
+                  <article>
+                    <i class="fas fa-arrow-trend-up"></i>
+                    <strong>Lợi nhuận</strong>
+                    <span>Total Return và Equity Curve cho biết chiến lược tăng vốn ra sao.</span>
+                  </article>
+                  <article>
+                    <i class="fas fa-shield-halved"></i>
+                    <strong>Rủi ro giảm giá</strong>
+                    <span>Max Drawdown, CVaR và Sortino giúp đọc mức chịu lỗ trong giai đoạn xấu.</span>
+                  </article>
+                  <article>
+                    <i class="fas fa-scale-balanced"></i>
+                    <strong>Hiệu suất điều chỉnh rủi ro</strong>
+                    <span>Sharpe/Sortino cho thấy return có xứng với biến động phải chịu hay không.</span>
+                  </article>
+                  <article>
+                    <i class="fas fa-layer-group"></i>
+                    <strong>Market Regime</strong>
+                    <span>Bull, Sideways và Bear giúp thấy model mạnh ở bối cảnh nào.</span>
+                  </article>
+                </div>
+              </section>
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
-      <!-- Footer -->
-      <div class="footer">
-        <p>
-          Nền tảng giao dịch RL nhạy cảm với rủi ro | Xây dựng bằng PyTorch &
-          Django | Chỉ dành cho mục đích học tập
-        </p>
-        <p>
-          <small
-            >© 2026 - So sánh mô hình: Giao dịch RL trung lập rủi ro và nhạy cảm
-            với rủi ro</small
-          >
-        </p>
-      </div>
+      <footer class="lab-footer">
+        <p>Research prototype cho mục đích học thuật. Không phải khuyến nghị đầu tư.</p>
+      </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -737,7 +736,34 @@
         return cookieValue;
       }
 
-      // Model Comparison functionality
+      const comparisonModels = [
+        {
+          key: "ppo",
+          label: "PPO (Trung lập rủi ro)",
+          color: "#2563eb",
+        },
+        {
+          key: "cvar",
+          label: "CVaR-PPO (Nhạy cảm với rủi ro)",
+          color: "#059669",
+        },
+        {
+          key: "sortino",
+          label: "Sortino-PPO (Điều chỉnh theo rủi ro)",
+          color: "#7c3aed",
+        },
+        {
+          key: "buy_hold",
+          label: "Mua và Giữ (Chuẩn so sánh)",
+          color: "#6b7280",
+        },
+      ];
+
+      const missingValueText = "—";
+      const noDataText = "Không có dữ liệu";
+      let currentRegimeStats = null;
+      let activeRegimeMetric = "total_return";
+
       document
         .getElementById("comparisonForm")
         .addEventListener("submit", async function (e) {
@@ -754,9 +780,21 @@
 
           const loading = document.getElementById("comparisonLoading");
           const results = document.getElementById("comparisonResults");
+          const cmpErr = document.getElementById("cmpError");
+          const initialState = document.getElementById("comparisonInitialState");
 
           loading.style.display = "block";
           results.style.display = "none";
+          cmpErr.style.display = "none";
+          cmpErr.textContent = "";
+          initialState.style.display = "none";
+          document.getElementById("metricsTableBody").innerHTML = "";
+          Plotly.purge("comparisonChart");
+          Plotly.purge("metricBarChart");
+          Plotly.purge("drawdownComparisonChart");
+          Plotly.purge("regimePerformanceChart");
+          document.getElementById("comparisonConclusion").textContent =
+            "Đang tính kết luận từ dữ liệu backtest...";
 
           try {
             const response = await fetch("/api/compare_models/", {
@@ -770,88 +808,106 @@
 
             const data = await response.json();
 
-            if (data.success && data.results && data.data_info) {
-              displayComparisonResults(data.results, data.data_info);
-              results.style.display = "block";
-            } else if (data.success && data.comparison) {
-              displayPrecomputedComparison(data.comparison);
-              results.style.display = "block";
-            } else {
-              const cmpErr = document.getElementById("cmpError");
-              cmpErr.textContent =
-                "Lỗi: " + (data.error || "Lỗi không xác định");
-              cmpErr.style.display = "block";
+            if (!response.ok || !data.success || !data.results || !data.data_info) {
+              throw new Error(data.error || "Không thể chạy so sánh mô hình");
             }
+
+            results.style.display = "block";
+            displayComparisonResults(data.results, data.data_info);
           } catch (error) {
-            const cmpErr = document.getElementById("cmpError");
             cmpErr.textContent = "Lỗi khi chạy so sánh: " + error.message;
             cmpErr.style.display = "block";
+          } finally {
+            loading.style.display = "none";
           }
-
-          loading.style.display = "none";
         });
 
-      const comparisonModelMeta = {
-        PPO: { label: "PPO (Trung lập rủi ro)", color: "#2563eb" },
-        "CVaR-PPO": {
-          label: "CVaR-PPO (Nhạy cảm với rủi ro)",
-          color: "#059669",
-        },
-        "Sortino-PPO": {
-          label: "Sortino-PPO (Điều chỉnh theo rủi ro)",
-          color: "#7c3aed",
-        },
-        "Buy & Hold": { label: "Mua và Giữ (Chuẩn so sánh)", color: "#6b7280" },
-        buy_hold: { label: "Mua và Giữ (Chuẩn so sánh)", color: "#6b7280" },
-      };
+      function metricValue(source, keys) {
+        const sources = [];
+        if (source && typeof source === "object" && source.metrics) {
+          sources.push(source.metrics);
+        }
+        if (source && typeof source === "object") sources.push(source);
 
-      function asMetricRows(testResults) {
-        if (!testResults) return [];
-
-        return Object.entries(testResults)
-          .filter(([, metrics]) => metrics && typeof metrics === "object")
-          .map(([name, metrics]) => ({
-            name,
-            label: (comparisonModelMeta[name] || {}).label || name,
-            color: (comparisonModelMeta[name] || {}).color || "#111827",
-            data: metrics,
-          }));
-      }
-
-      function metricValue(metrics, keys) {
-        for (const key of keys) {
-          if (
-            metrics[key] !== undefined &&
-            metrics[key] !== null &&
-            Number.isFinite(Number(metrics[key]))
-          ) {
-            return Number(metrics[key]);
+        for (const item of sources) {
+          for (const key of keys) {
+            if (
+              item[key] !== undefined &&
+              item[key] !== null &&
+              Number.isFinite(Number(item[key]))
+            ) {
+              return Number(item[key]);
+            }
           }
         }
         return null;
       }
 
       function formatPercent(value) {
-        if (value === null || value === undefined) return "Không có dữ liệu";
-        const displayValue = Math.abs(value) <= 1 ? value * 100 : value;
+        if (value === null || value === undefined) return missingValueText;
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) return missingValueText;
+        const displayValue =
+          Math.abs(numericValue) <= 1 ? numericValue * 100 : numericValue;
         return `${displayValue.toFixed(2)}%`;
       }
 
-      function formatNumber(value) {
-        return value === null || value === undefined
-          ? "Không có dữ liệu"
-          : value.toFixed(2);
+      function formatRatio(value) {
+        if (value === null || value === undefined) return missingValueText;
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue)
+          ? numericValue.toFixed(2)
+          : missingValueText;
       }
 
       function formatMoney(value) {
-        return value === null || value === undefined
-          ? "Không có dữ liệu"
-          : `$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+        if (value === null || value === undefined) return missingValueText;
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue)
+          ? `$${numericValue.toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}`
+          : missingValueText;
+      }
+
+      function formatInteger(value) {
+        if (value === null || value === undefined) return missingValueText;
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue)
+          ? Math.round(numericValue).toLocaleString("en-US")
+          : missingValueText;
+      }
+
+      function buildModelRows(results) {
+        return comparisonModels
+          .map((model) => {
+            const result = results[model.key];
+            if (!result || typeof result !== "object") return null;
+            return {
+              ...model,
+              result,
+              metrics: result.metrics || {},
+            };
+          })
+          .filter(Boolean);
+      }
+
+      function modelShortLabel(label) {
+        return label
+          .replace(" (Trung lập rủi ro)", "")
+          .replace(" (Nhạy cảm với rủi ro)", "")
+          .replace(" (Điều chỉnh theo rủi ro)", "")
+          .replace(" (Chuẩn so sánh)", "");
+      }
+
+      function rowColorClass(row) {
+        return `model-${row.key}`;
       }
 
       function bestBy(rows, keys, compareFn) {
         const scoredRows = rows
-          .map((row) => ({ ...row, value: metricValue(row.data, keys) }))
+          .map((row) => ({ ...row, value: metricValue(row.result, keys) }))
           .filter((row) => row.value !== null);
 
         if (!scoredRows.length) return null;
@@ -872,64 +928,80 @@
         );
         const bestSharpe = bestBy(
           rows,
-          ["sharpe_ratio", "sharpe"],
+          ["sharpe_ratio"],
           (value, best) => value > best,
         );
         const lowestDrawdown = bestBy(
           rows,
           ["max_drawdown"],
-          (value, best) => value > best,
+          (value, best) => Math.abs(value) < Math.abs(best),
         );
         const bestWinRate = bestBy(
           rows,
           ["win_rate"],
           (value, best) => value > best,
         );
+        const bestFinalValue = bestBy(
+          rows,
+          ["final_value", "final_portfolio_value"],
+          (value, best) => value > best,
+        );
+        const mostTrades = bestBy(
+          rows,
+          ["num_trades", "number_of_trades"],
+          (value, best) => value > best,
+        );
 
         const cards = [
           {
-            title: "Lợi nhuận tốt nhất",
+            title: "Best Total Return",
             item: bestReturn,
-            value: bestReturn
-              ? formatPercent(bestReturn.value)
-              : "Không có dữ liệu",
+            value: bestReturn ? formatPercent(bestReturn.value) : noDataText,
             icon: "fa-arrow-trend-up",
           },
           {
-            title: "Sharpe tốt nhất",
+            title: "Best Sharpe Ratio",
             item: bestSharpe,
-            value: bestSharpe
-              ? formatNumber(bestSharpe.value)
-              : "Không có dữ liệu",
+            value: bestSharpe ? formatRatio(bestSharpe.value) : noDataText,
             icon: "fa-chart-line",
           },
           {
-            title: "Drawdown thấp nhất",
+            title: "Lowest Max Drawdown",
             item: lowestDrawdown,
             value: lowestDrawdown
               ? formatPercent(lowestDrawdown.value)
-              : "Không có dữ liệu",
+              : noDataText,
             icon: "fa-shield-alt",
           },
           {
-            title: "Win Rate tốt nhất",
+            title: "Best Win Rate",
             item: bestWinRate,
-            value: bestWinRate
-              ? formatPercent(bestWinRate.value)
-              : "Không có dữ liệu",
+            value: bestWinRate ? formatPercent(bestWinRate.value) : noDataText,
             icon: "fa-check-circle",
+          },
+          {
+            title: "Final Portfolio Value",
+            item: bestFinalValue,
+            value: bestFinalValue ? formatMoney(bestFinalValue.value) : noDataText,
+            icon: "fa-wallet",
+          },
+          {
+            title: "Number of Trades",
+            item: mostTrades,
+            value: mostTrades ? formatInteger(mostTrades.value) : noDataText,
+            icon: "fa-repeat",
           },
         ];
 
         summary.innerHTML = cards
           .map(
             (card) => `
-                <div class="summary-card">
+                <div class="summary-card ${card.item ? rowColorClass(card.item) : ""}">
                     <div class="summary-icon"><i class="fas ${card.icon}"></i></div>
                     <div>
                         <p>${card.title}</p>
-                        <strong>${card.item ? card.item.label : "Chưa có dữ liệu"}</strong>
-                        <span>${card.value}</span>
+                        <strong>${card.value}</strong>
+                        <em>${card.item ? modelShortLabel(card.item.label) : noDataText}</em>
                     </div>
                 </div>
             `,
@@ -941,148 +1013,783 @@
         const tableBody = document.getElementById("metricsTableBody");
         tableBody.innerHTML = "";
 
-        rows.forEach((rowData) => {
-          const metrics = rowData.data;
+        if (!rows.length) {
           const row = document.createElement("tr");
-          const finalValue = metricValue(metrics, [
-            "final_balance",
+          row.innerHTML = `<td colspan="8">${noDataText}</td>`;
+          tableBody.appendChild(row);
+          return;
+        }
+
+        const bestValues = {
+          totalReturn: bestBy(rows, ["total_return"], (value, best) => value > best),
+          sharpe: bestBy(rows, ["sharpe_ratio"], (value, best) => value > best),
+          drawdown: bestBy(
+            rows,
+            ["max_drawdown"],
+            (value, best) => Math.abs(value) < Math.abs(best),
+          ),
+          volatility: bestBy(
+            rows,
+            ["volatility"],
+            (value, best) => value < best,
+          ),
+          winRate: bestBy(rows, ["win_rate"], (value, best) => value > best),
+          finalValue: bestBy(
+            rows,
+            ["final_portfolio_value", "final_value", "final_balance"],
+            (value, best) => value > best,
+          ),
+          numTrades: bestBy(
+            rows,
+            ["number_of_trades", "num_trades"],
+            (value, best) => value > best,
+          ),
+        };
+
+        const isBest = (rowData, bestItem) => bestItem && rowData.key === bestItem.key;
+
+        rows.forEach((rowData) => {
+          const row = document.createElement("tr");
+          const totalReturn = metricValue(rowData.result, ["total_return"]);
+          const sharpe = metricValue(rowData.result, ["sharpe_ratio"]);
+          const drawdown = metricValue(rowData.result, ["max_drawdown"]);
+          const volatility = metricValue(rowData.result, ["volatility"]);
+          const winRate = metricValue(rowData.result, ["win_rate"]);
+          const finalValue = metricValue(rowData.result, [
+            "final_portfolio_value",
             "final_value",
+            "final_balance",
           ]);
-          const totalReturn = metricValue(metrics, ["total_return"]);
-          const sharpe = metricValue(metrics, ["sharpe_ratio", "sharpe"]);
-          const drawdown = metricValue(metrics, ["max_drawdown"]);
-          const volatility = metricValue(metrics, ["volatility"]);
-          const winRate = metricValue(metrics, ["win_rate"]);
-          const numTrades = metricValue(metrics, ["num_trades"]);
+          const numTrades = metricValue(rowData.result, [
+            "number_of_trades",
+            "num_trades",
+          ]);
 
           row.innerHTML = `
-                    <td><strong style="color: ${rowData.color}">${rowData.label}</strong></td>
-                    <td>${formatPercent(totalReturn)}</td>
-                    <td>${formatNumber(sharpe)}</td>
-                    <td>${formatPercent(drawdown)}</td>
-                    <td>${formatPercent(volatility)}</td>
-                    <td>${formatPercent(winRate)}</td>
-                    <td>${formatMoney(finalValue)}</td>
-                    <td>${numTrades !== null ? numTrades : "Không có dữ liệu"}</td>
+                    <td class="model-cell"><span class="model-dot" style="background:${rowData.color}"></span><strong>${modelShortLabel(rowData.label)}</strong></td>
+                    <td class="${isBest(rowData, bestValues.totalReturn) ? "best-cell" : ""}">${formatPercent(totalReturn)}</td>
+                    <td class="${isBest(rowData, bestValues.sharpe) ? "best-cell" : ""}">${formatRatio(sharpe)}</td>
+                    <td class="${isBest(rowData, bestValues.drawdown) ? "best-cell" : ""}">${formatPercent(drawdown)}</td>
+                    <td class="${isBest(rowData, bestValues.volatility) ? "best-cell" : ""}">${formatPercent(volatility)}</td>
+                    <td class="${isBest(rowData, bestValues.winRate) ? "best-cell" : ""}">${formatPercent(winRate)}</td>
+                    <td class="${isBest(rowData, bestValues.finalValue) ? "best-cell" : ""}">${formatMoney(finalValue)}</td>
+                    <td class="${isBest(rowData, bestValues.numTrades) ? "best-cell" : ""}">${formatInteger(numTrades)}</td>
                 `;
           tableBody.appendChild(row);
         });
       }
 
-      function displayPrecomputedComparison(comparison) {
-        const rows = asMetricRows(comparison.test_results);
-        renderComparisonSummary(rows);
-        renderMetricsTable(rows);
+      function equityValues(result) {
+        if (Array.isArray(result.portfolio_values)) return result.portfolio_values;
+        if (Array.isArray(result.portfolio_history)) {
+          return result.portfolio_history.map((point) =>
+            typeof point === "object" ? point.portfolio_value : point,
+          );
+        }
+        if (Array.isArray(result.history)) {
+          return result.history.map((point) => point.portfolio_value);
+        }
+        return [];
+      }
 
-        document.getElementById("comparisonChart").innerHTML = `
+      function equityXValues(result, length) {
+        if (Array.isArray(result.dates) && result.dates.length === length) {
+          return result.dates;
+        }
+        if (Array.isArray(result.history) && result.history.length === length) {
+          return result.history.map((point) => point.date);
+        }
+        return Array.from({ length }, (_, i) => i + 1);
+      }
+
+      function renderComparisonChart(rows, dataInfo) {
+        const chartData = rows
+          .map((row) => {
+            const rawValues = equityValues(row.result);
+            if (!rawValues.length) return null;
+            const xValues = equityXValues(row.result, rawValues.length);
+            const points = rawValues
+              .map((value, index) => ({
+                x: xValues[index],
+                y: Number(value),
+              }))
+              .filter((point) => Number.isFinite(point.y));
+            if (!points.length) return null;
+
+            return {
+              x: points.map((point) => point.x),
+              y: points.map((point) => point.y),
+              type: "scatter",
+              mode: "lines",
+              name: modelShortLabel(row.label),
+              line: {
+                color: row.color,
+                width: row.key === "buy_hold" ? 2 : 3,
+                dash: row.key === "buy_hold" ? "dot" : "solid",
+              },
+            };
+          })
+          .filter(Boolean);
+
+        if (!chartData.length) {
+          Plotly.purge("comparisonChart");
+          document.getElementById("comparisonChart").innerHTML = `
                 <div class="chart-empty-state">
-                    <i class="fas fa-table"></i>
-                    <p>Dữ liệu chuỗi danh mục chưa có trong API so sánh. Bạn vẫn có thể đánh giá mô hình bằng bảng metric tổng hợp.</p>
+                    <i class="fas fa-chart-line"></i>
+                    <p>API so sánh không trả Equity Curve. Bảng metric vẫn dùng dữ liệu thật từ response.</p>
+                </div>
+            `;
+          return;
+        }
+
+        const period = document.getElementById("comparisonPeriod");
+        if (period) {
+          period.textContent = `${dataInfo.symbol} | ${dataInfo.start_date} đến ${dataInfo.end_date} | Portfolio Value theo thời gian.`;
+        }
+
+        const layout = {
+          xaxis: { title: "Ngày giao dịch", automargin: true },
+          yaxis: { title: "Giá trị danh mục ($)", automargin: true },
+          hovermode: "x unified",
+          template: "plotly_white",
+          margin: { l: 68, r: 28, t: 50, b: 58 },
+          showlegend: true,
+          legend: { orientation: "h", x: 0, y: 1.18, xanchor: "left" },
+        };
+
+        Plotly.react("comparisonChart", chartData, layout, {
+          responsive: true,
+          displayModeBar: false,
+        });
+      }
+
+      function renderMetricBarChart(rows) {
+        const metrics = [
+          {
+            label: "Total Return (%)",
+            keys: ["total_return"],
+            transform: (value) => toPercentValue(value),
+          },
+          {
+            label: "Sharpe",
+            keys: ["sharpe_ratio"],
+            transform: (value) => Number(value),
+          },
+          {
+            label: "|Max Drawdown| (%)",
+            keys: ["max_drawdown"],
+            transform: (value) => Math.abs(toPercentValue(value)),
+          },
+          {
+            label: "Volatility (%)",
+            keys: ["volatility"],
+            transform: (value) => toPercentValue(value),
+          },
+          {
+            label: "Win Rate (%)",
+            keys: ["win_rate"],
+            transform: (value) => toPercentValue(value),
+          },
+        ];
+
+        const traces = rows.map((row) => ({
+          x: metrics.map((metric) => metric.label),
+          y: metrics.map((metric) => {
+            const value = metricValue(row.result, metric.keys);
+            return value === null ? null : metric.transform(value);
+          }),
+          type: "bar",
+          name: modelShortLabel(row.label),
+          marker: { color: row.color },
+          hovertemplate: "%{fullData.name}<br>%{x}: %{y:.2f}<extra></extra>",
+        }));
+
+        if (!traces.length) {
+          emptyChart("metricBarChart", "Không đủ metric để vẽ biểu đồ so sánh.");
+          return;
+        }
+
+        Plotly.react(
+          "metricBarChart",
+          traces,
+          {
+            barmode: "group",
+            margin: { l: 58, r: 22, t: 50, b: 88 },
+            xaxis: { automargin: true, tickangle: -18 },
+            yaxis: { title: "Giá trị", automargin: true },
+            legend: { orientation: "h", x: 0, y: 1.18 },
+            template: "plotly_white",
+          },
+          { responsive: true, displayModeBar: false },
+        );
+      }
+
+      function drawdownValues(values) {
+        const cleanValues = values.map(Number).filter(Number.isFinite);
+        if (cleanValues.length < 2) return [];
+        let peak = cleanValues[0];
+        return cleanValues.map((value) => {
+          peak = Math.max(peak, value);
+          return peak > 0 ? ((value - peak) / peak) * 100 : 0;
+        });
+      }
+
+      function renderDrawdownComparisonChart(rows) {
+        const traces = rows
+          .map((row) => {
+            const values = equityValues(row.result);
+            const drawdowns = drawdownValues(values);
+            if (drawdowns.length < 2) return null;
+            return {
+              x: equityXValues(row.result, drawdowns.length),
+              y: drawdowns,
+              type: "scatter",
+              mode: "lines",
+              name: modelShortLabel(row.label),
+              line: {
+                color: row.color,
+                width: row.key === "buy_hold" ? 2 : 2.5,
+                dash: row.key === "buy_hold" ? "dot" : "solid",
+              },
+              hovertemplate:
+                "%{fullData.name}<br>Drawdown: %{y:.2f}%<extra></extra>",
+            };
+          })
+          .filter(Boolean);
+
+        if (!traces.length) {
+          emptyChart(
+            "drawdownComparisonChart",
+            "Drawdown cần chuỗi Portfolio Value từ API.",
+          );
+          return;
+        }
+
+        Plotly.react(
+          "drawdownComparisonChart",
+          traces,
+          {
+            margin: { l: 58, r: 22, t: 50, b: 58 },
+            xaxis: { title: "Ngày giao dịch", automargin: true },
+            yaxis: { title: "Drawdown (%)", automargin: true, ticksuffix: "%" },
+            hovermode: "x unified",
+            legend: { orientation: "h", x: 0, y: 1.18 },
+            template: "plotly_white",
+          },
+          { responsive: true, displayModeBar: false },
+        );
+      }
+
+      function toPercentValue(value) {
+        if (value === null || value === undefined) return null;
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) return null;
+        return Math.abs(numericValue) <= 1 ? numericValue * 100 : numericValue;
+      }
+
+      function mean(values) {
+        const cleanValues = values.filter(Number.isFinite);
+        if (!cleanValues.length) return null;
+        return (
+          cleanValues.reduce((total, value) => total + value, 0) /
+          cleanValues.length
+        );
+      }
+
+      function standardDeviation(values) {
+        const avg = mean(values);
+        if (avg === null) return 0;
+        const variance =
+          values.reduce((total, value) => total + (value - avg) ** 2, 0) /
+          values.length;
+        return Math.sqrt(variance);
+      }
+
+      function percentile(values, ratio) {
+        const cleanValues = values.filter(Number.isFinite).sort((a, b) => a - b);
+        if (!cleanValues.length) return null;
+        const index = Math.min(
+          cleanValues.length - 1,
+          Math.max(0, Math.floor((cleanValues.length - 1) * ratio)),
+        );
+        return cleanValues[index];
+      }
+
+      function returnSeries(values) {
+        const returns = [];
+        for (let i = 1; i < values.length; i += 1) {
+          const previous = Number(values[i - 1]);
+          const current = Number(values[i]);
+          returns.push(
+            Number.isFinite(previous) && Number.isFinite(current) && previous !== 0
+              ? current / previous - 1
+              : null,
+          );
+        }
+        return returns;
+      }
+
+      function classifyRegimes(referenceValues) {
+        const values = referenceValues.map(Number).filter(Number.isFinite);
+        if (values.length < 35) return null;
+
+        const returns = returnSeries(values);
+        if (returns.length < 30) return null;
+
+        const windowSize = Math.min(
+          30,
+          Math.max(10, Math.floor(returns.length / 12)),
+        );
+        const entries = [];
+        for (let index = windowSize - 1; index < returns.length; index += 1) {
+          const windowReturns = returns
+            .slice(index - windowSize + 1, index + 1)
+            .filter(Number.isFinite);
+          if (windowReturns.length < Math.max(5, Math.floor(windowSize / 2))) {
+            continue;
+          }
+          const rollingReturn =
+            windowReturns.reduce((total, value) => total * (1 + value), 1) - 1;
+          const rollingVolatility =
+            standardDeviation(windowReturns) * Math.sqrt(252);
+          entries.push({ index, rollingReturn, rollingVolatility });
+        }
+
+        const highVolatility = percentile(
+          entries.map((entry) => entry.rollingVolatility),
+          0.75,
+        );
+        if (!entries.length || highVolatility === null) return null;
+
+        const neutralReturn = 0.01;
+        entries.forEach((entry) => {
+          if (
+            entry.rollingReturn < -neutralReturn ||
+            entry.rollingVolatility > highVolatility
+          ) {
+            entry.regime = "bear";
+          } else if (entry.rollingReturn > neutralReturn) {
+            entry.regime = "bull";
+          } else {
+            entry.regime = "sideways";
+          }
+        });
+
+        return entries;
+      }
+
+      function emptyChart(containerId, message) {
+        Plotly.purge(containerId);
+        document.getElementById(containerId).innerHTML = `
+                <div class="chart-empty-state">
+                    <i class="fas fa-chart-area"></i>
+                    <p>${message}</p>
                 </div>
             `;
       }
 
-      function displayComparisonResults(results, dataInfo) {
-        // Create comparison chart
-        const chartData = [];
+      function computeRegimeStats(rows) {
+        const referenceRow =
+          rows.find(
+            (row) => row.key === "buy_hold" && equityValues(row.result).length,
+          ) || rows.find((row) => equityValues(row.result).length);
+        if (!referenceRow) return null;
 
-        if (results.ppo && results.ppo.portfolio_values) {
-          chartData.push({
-            x: results.ppo.portfolio_values.map((_, i) => i),
-            y: results.ppo.portfolio_values,
-            type: "scatter",
-            mode: "lines",
-            name: "PPO (Trung lập rủi ro)",
-            line: { color: "#2563eb", width: 3 },
-          });
-        }
+        const regimes = classifyRegimes(equityValues(referenceRow.result));
+        if (!regimes) return null;
 
-        if (results.cvar && results.cvar.portfolio_values) {
-          chartData.push({
-            x: results.cvar.portfolio_values.map((_, i) => i),
-            y: results.cvar.portfolio_values,
-            type: "scatter",
-            mode: "lines",
-            name: "CVaR-PPO (Nhạy cảm với rủi ro)",
-            line: { color: "#059669", width: 3 },
-          });
-        }
-
-        if (results.sortino && results.sortino.portfolio_values) {
-          chartData.push({
-            x: results.sortino.portfolio_values.map((_, i) => i),
-            y: results.sortino.portfolio_values,
-            type: "scatter",
-            mode: "lines",
-            name: "Sortino-PPO (Điều chỉnh theo rủi ro)",
-            line: { color: "#7c3aed", width: 3 },
-          });
-        }
-
-        if (results.buy_hold && results.buy_hold.portfolio_values) {
-          chartData.push({
-            x: results.buy_hold.portfolio_values.map((_, i) => i),
-            y: results.buy_hold.portfolio_values,
-            type: "scatter",
-            mode: "lines",
-            name: "Mua và Giữ (Chuẩn so sánh)",
-            line: { color: "#6b7280", width: 2, dash: "dot" },
-          });
-        }
-
-        const layout = {
-          title: `So sánh mô hình: ${dataInfo.symbol} (${dataInfo.start_date} đến ${dataInfo.end_date})`,
-          xaxis: { title: "Ngày giao dịch" },
-          yaxis: { title: "Giá trị danh mục ($)" },
-          showlegend: true,
-          legend: { x: 0, y: 1 },
-        };
-
-        Plotly.newPlot("comparisonChart", chartData, layout);
-
-        // Populate metrics table
-        const models = [
-          {
-            name: "PPO (Trung lập rủi ro)",
-            data: results.ppo,
-            color: "#2563eb",
-          },
-          {
-            name: "CVaR-PPO (Nhạy cảm với rủi ro)",
-            data: results.cvar,
-            color: "#059669",
-          },
-          {
-            name: "Sortino-PPO (Điều chỉnh theo rủi ro)",
-            data: results.sortino,
-            color: "#7c3aed",
-          },
-          {
-            name: "Mua và Giữ (Chuẩn so sánh)",
-            data: results.buy_hold,
-            color: "#6b7280",
-          },
+        const regimeOrder = [
+          { key: "bull", label: "Bull / Uptrend" },
+          { key: "sideways", label: "Sideways / Mixed" },
+          { key: "bear", label: "Bear / High Volatility" },
         ];
 
-        renderComparisonSummary(
-          models
-            .filter((model) => model.data)
-            .map((model) => ({
-              label: model.name,
-              color: model.color,
-              data: model.data,
-            })),
+        const modelStats = rows.map((row) => {
+          const modelReturns = returnSeries(equityValues(row.result).map(Number));
+          const regimeValues = {};
+          regimeOrder.forEach((regime) => {
+            const groupedReturns = regimes
+              .filter((entry) => entry.regime === regime.key)
+              .map((entry) => modelReturns[entry.index])
+              .filter(Number.isFinite);
+            const averageReturn = mean(groupedReturns);
+            const volatility = standardDeviation(groupedReturns);
+            const compoundedReturn = groupedReturns.length
+              ? groupedReturns.reduce((total, value) => total * (1 + value), 1) - 1
+              : null;
+            let runningValue = 1;
+            let peakValue = 1;
+            let maxDrawdown = 0;
+            groupedReturns.forEach((value) => {
+              runningValue *= 1 + value;
+              peakValue = Math.max(peakValue, runningValue);
+              maxDrawdown = Math.min(maxDrawdown, (runningValue - peakValue) / peakValue);
+            });
+            regimeValues[regime.key] = {
+              total_return: compoundedReturn === null ? null : compoundedReturn * 100,
+              sharpe:
+                averageReturn === null || volatility === 0
+                  ? null
+                  : (averageReturn / volatility) * Math.sqrt(252),
+              max_drawdown: maxDrawdown * 100,
+              sample_size: groupedReturns.length,
+            };
+          });
+          return {
+            key: row.key,
+            label: row.label,
+            shortLabel: modelShortLabel(row.label),
+            color: row.color,
+            regimes: regimeValues,
+          };
+        });
+
+        const hasValues = modelStats.some((row) =>
+          regimeOrder.some((regime) =>
+            Number.isFinite(row.regimes[regime.key]?.total_return),
+          ),
         );
-        renderMetricsTable(
-          models
-            .filter((model) => model.data)
-            .map((model) => ({
-              label: model.name,
-              color: model.color,
-              data: model.data,
-            })),
+        if (!hasValues) return null;
+
+        const bestByRegime = regimeOrder.map((regime, regimeIndex) => {
+          const candidates = modelStats
+            .map((row) => ({
+              label: row.label,
+              value: row.regimes[regime.key]?.total_return,
+            }))
+            .filter((item) => Number.isFinite(item.value));
+          if (!candidates.length) return null;
+          return candidates.reduce(
+            (best, item) => (item.value > best.value ? item : best),
+            candidates[0],
+          );
+        });
+
+        return {
+          regimeOrder,
+          modelStats,
+          bestByRegime,
+        };
+      }
+
+      function regimeMetricLabel(metric) {
+        return {
+          total_return: "Total Return (%)",
+          sharpe: "Sharpe proxy",
+          max_drawdown: "Max Drawdown (%)",
+        }[metric];
+      }
+
+      function regimeMetricValue(item, metric) {
+        const value = item?.[metric];
+        if (!Number.isFinite(value)) return null;
+        return metric === "max_drawdown" ? Math.abs(value) : value;
+      }
+
+      function renderRegimePerformanceChart(stats, metric = activeRegimeMetric) {
+        if (!stats) {
+          emptyChart(
+            "regimePerformanceChart",
+            "Regime Analysis cần dữ liệu chuỗi/backtest đầy đủ. Hãy chạy so sánh để sinh kết quả trước.",
+          );
+          return;
+        }
+
+        const traces = stats.modelStats.map((model) => ({
+          x: stats.regimeOrder.map((regime) => regime.label),
+          y: stats.regimeOrder.map((regime) =>
+            regimeMetricValue(model.regimes[regime.key], metric),
+          ),
+          type: "bar",
+          name: model.shortLabel,
+          marker: { color: model.color },
+          customdata: stats.regimeOrder.map(
+            (regime) => model.regimes[regime.key]?.sample_size || 0,
+          ),
+          hovertemplate:
+            `%{fullData.name}<br>%{x}<br>${regimeMetricLabel(metric)}: %{y:.2f}<br>Số quan sát: %{customdata}<extra></extra>`,
+        }));
+
+        const hasValues = traces.some((trace) =>
+          trace.y.some((value) => Number.isFinite(value)),
+        );
+        if (!hasValues) {
+          emptyChart(
+            "regimePerformanceChart",
+            "Chưa đủ dữ liệu chuỗi để phân tích regime.",
+          );
+          return;
+        }
+
+        Plotly.react(
+          "regimePerformanceChart",
+          traces,
+          {
+            barmode: "group",
+            margin: { l: 62, r: 24, t: 48, b: 72 },
+            xaxis: { automargin: true },
+            yaxis: {
+              title:
+                metric === "max_drawdown"
+                  ? "|Max Drawdown| (%)"
+                  : regimeMetricLabel(metric),
+              automargin: true,
+            },
+            legend: { orientation: "h", x: 0, y: 1.18 },
+            template: "plotly_white",
+          },
+          { responsive: true, displayModeBar: false },
         );
       }
+
+      function bestRegimeModel(stats, regimeKey, metric, lowerIsBetter = false) {
+        if (!stats) return null;
+        const candidates = stats.modelStats
+          .map((model) => ({
+            label: model.shortLabel,
+            value: regimeMetricValue(model.regimes[regimeKey], metric),
+          }))
+          .filter((item) => Number.isFinite(item.value));
+        if (!candidates.length) return null;
+        return candidates.reduce(
+          (best, item) =>
+            lowerIsBetter
+              ? item.value < best.value
+                ? item
+                : best
+              : item.value > best.value
+                ? item
+                : best,
+          candidates[0],
+        );
+      }
+
+      function renderRegimeInsightCards(stats) {
+        const container = document.getElementById("regimeInsightCards");
+        if (!container) return;
+
+        if (!stats) {
+          container.innerHTML = `
+            <article>
+              <strong>Chưa đủ dữ liệu</strong>
+              <span>Regime Analysis cần dữ liệu chuỗi/backtest đầy đủ. Hãy chạy so sánh để sinh kết quả trước.</span>
+            </article>
+          `;
+          return;
+        }
+
+        const bullWinner = bestRegimeModel(stats, "bull", "total_return");
+        const bearDrawdown = bestRegimeModel(stats, "bear", "max_drawdown", true);
+        const bearSharpe = bestRegimeModel(stats, "bear", "sharpe");
+
+        container.innerHTML = `
+          <article>
+            <strong>Bull / Trending Up</strong>
+            <span>${
+              bullWinner
+                ? `${bullWinner.label} nổi bật về Total Return trong regime tăng.`
+                : "Benchmark thụ động có thể có lợi thế khi thị trường tăng rõ."
+            }</span>
+          </article>
+          <article>
+            <strong>Bear / High Volatility</strong>
+            <span>${
+              bearDrawdown
+                ? `${bearDrawdown.label} có |Max Drawdown| thấp nhất trong regime xấu.`
+                : "Trong regime xấu, nên đọc Max Drawdown, CVaR và Sortino thay vì chỉ Total Return."
+            }</span>
+          </article>
+          <article>
+            <strong>Risk-sensitive RL</strong>
+            <span>${
+              bearSharpe
+                ? `${bearSharpe.label} nổi bật về Sharpe proxy trong regime biến động.`
+                : "Giá trị chính là kiểm soát rủi ro, không nhất thiết thắng return tuyệt đối."
+            }</span>
+          </article>
+        `;
+      }
+
+      function renderComparisonConclusion(rows, regimeStats) {
+        const conclusion = document.getElementById("comparisonConclusion");
+        if (!conclusion) return;
+        if (!rows.length) {
+          conclusion.textContent = "Chưa đủ dữ liệu để sinh kết luận so sánh.";
+          return;
+        }
+
+        const statements = [];
+        const bestReturn = bestBy(
+          rows,
+          ["total_return"],
+          (value, best) => value > best,
+        );
+        const bestSharpe = bestBy(
+          rows,
+          ["sharpe_ratio"],
+          (value, best) => value > best,
+        );
+        if (bestSharpe) {
+          statements.push(
+            `Về risk-adjusted performance, ${modelShortLabel(bestSharpe.label)} có Sharpe cao nhất (${formatRatio(bestSharpe.value)}).`,
+          );
+        }
+
+        const buyHold = rows.find((row) => row.key === "buy_hold");
+        if (bestReturn && buyHold && bestReturn.key === "buy_hold") {
+          const buyDrawdown = Math.abs(
+            metricValue(buyHold.result, ["max_drawdown"]) ?? 0,
+          );
+          const buyVolatility = metricValue(buyHold.result, ["volatility"]);
+          const maxDrawdown = Math.max(
+            ...rows
+              .map((row) => Math.abs(metricValue(row.result, ["max_drawdown"]) ?? 0))
+              .filter(Number.isFinite),
+          );
+          const maxVolatility = Math.max(
+            ...rows
+              .map((row) => metricValue(row.result, ["volatility"]))
+              .filter(Number.isFinite),
+          );
+          if (
+            buyDrawdown >= maxDrawdown * 0.9 ||
+            (buyVolatility !== null && buyVolatility >= maxVolatility * 0.9)
+          ) {
+            statements.push(
+              "Buy & Hold có lợi nhuận cao trong giai đoạn này nhưng chịu biến động thị trường nhiều hơn.",
+            );
+          } else {
+            statements.push(
+              "Buy & Hold có lợi nhuận cao trong giai đoạn này; cần đọc cùng Drawdown và Volatility để đánh giá độ ổn định.",
+            );
+          }
+        } else if (bestReturn) {
+          statements.push(
+            `${modelShortLabel(bestReturn.label)} có Total Return cao nhất trong giai đoạn backtest (${formatPercent(bestReturn.value)}).`,
+          );
+        }
+
+        const ppo = rows.find((row) => row.key === "ppo");
+        const riskSensitiveRows = rows.filter((row) =>
+          ["cvar", "sortino"].includes(row.key),
+        );
+        const ppoDrawdown =
+          ppo && metricValue(ppo.result, ["max_drawdown"]) !== null
+            ? Math.abs(metricValue(ppo.result, ["max_drawdown"]))
+            : null;
+        const lowerDrawdownModels = riskSensitiveRows.filter((row) => {
+          const drawdown = metricValue(row.result, ["max_drawdown"]);
+          return (
+            drawdown !== null &&
+            ppoDrawdown !== null &&
+            Math.abs(drawdown) < ppoDrawdown
+          );
+        });
+        if (lowerDrawdownModels.length) {
+          const bestReturnValue = bestReturn ? bestReturn.value : null;
+          const lowerDrawdownWithReturnTradeoff = lowerDrawdownModels.some(
+            (row) => {
+              const totalReturn = metricValue(row.result, ["total_return"]);
+              return (
+                totalReturn !== null &&
+                bestReturnValue !== null &&
+                totalReturn < bestReturnValue
+              );
+            },
+          );
+          statements.push(
+            lowerDrawdownWithReturnTradeoff
+              ? "Các mô hình risk-sensitive hy sinh một phần lợi nhuận để giảm rủi ro giảm giá."
+              : "Các mô hình risk-sensitive đang kiểm soát Drawdown tốt hơn baseline trong giai đoạn này.",
+          );
+        }
+
+        if (ppo && statements.length < 3) {
+          const returns = rows
+            .map((row) => metricValue(row.result, ["total_return"]))
+            .filter(Number.isFinite);
+          const ppoReturn = metricValue(ppo.result, ["total_return"]);
+          const ppoInMiddle =
+            ppoReturn !== null &&
+            returns.length > 2 &&
+            ppoReturn > Math.min(...returns) &&
+            ppoReturn < Math.max(...returns);
+          statements.push(
+            ppoInMiddle
+              ? "PPO nằm giữa các chiến lược trong giai đoạn này và đóng vai trò baseline risk-neutral để đối chiếu với các biến thể nhạy cảm rủi ro."
+              : "PPO đóng vai trò baseline risk-neutral để đối chiếu trực tiếp với CVaR-PPO và Sortino-PPO.",
+          );
+        }
+
+        if (regimeStats && regimeStats.bestByRegime) {
+          const regimeText = regimeStats.bestByRegime
+            .map((item, index) => {
+              if (!item) return null;
+              return `${regimeStats.regimeOrder[index].label}: ${modelShortLabel(item.label)}`;
+            })
+            .filter(Boolean)
+            .join("; ");
+          if (regimeText) {
+            statements.push(
+              `Theo Market Regime ước lượng từ Equity Curve, mô hình nổi bật theo từng regime là ${regimeText}.`,
+            );
+          }
+        }
+
+        if (!statements.length) {
+          statements.push(
+            "Dữ liệu hiện tại chưa đủ để kết luận mạnh; hãy đọc Equity Curve, Drawdown, Sharpe và Volatility cùng nhau.",
+          );
+        }
+
+        const conciseStatements = statements.slice(0, 4);
+        conclusion.innerHTML = `
+          <h6>Kết luận so sánh</h6>
+          <ul>
+            ${conciseStatements.map((statement) => `<li>${statement}</li>`).join("")}
+          </ul>
+        `;
+      }
+
+      function renderCompareAnalytics(rows) {
+        renderMetricBarChart(rows);
+        renderDrawdownComparisonChart(rows);
+        const regimeStats = computeRegimeStats(rows);
+        currentRegimeStats = regimeStats;
+        renderRegimePerformanceChart(regimeStats, activeRegimeMetric);
+        renderRegimeInsightCards(regimeStats);
+        renderComparisonConclusion(rows, regimeStats);
+      }
+
+      function resizeComparePlots() {
+        const resize = () => {
+          document
+            .querySelectorAll("#comparisonResults .js-plotly-plot")
+            .forEach((plot) => Plotly.Plots.resize(plot));
+        };
+        requestAnimationFrame(resize);
+        setTimeout(resize, 150);
+      }
+
+      function displayComparisonResults(results, dataInfo) {
+        const rows = buildModelRows(results);
+        renderComparisonSummary(rows);
+        renderMetricsTable(rows);
+        renderComparisonChart(rows, dataInfo);
+        renderCompareAnalytics(rows);
+        resizeComparePlots();
+      }
+
+      document.querySelectorAll("[data-regime-metric]").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeRegimeMetric = button.dataset.regimeMetric;
+          document
+            .querySelectorAll("[data-regime-metric]")
+            .forEach((item) => item.classList.toggle("active", item === button));
+          renderRegimePerformanceChart(currentRegimeStats, activeRegimeMetric);
+          resizeComparePlots();
+        });
+      });
     </script>
   </body>
 </html>
