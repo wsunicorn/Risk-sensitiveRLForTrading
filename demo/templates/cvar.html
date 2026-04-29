@@ -1,707 +1,938 @@
-<!DOCTYPE html>
+<!doctype html>
 {% load static %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CVaR-PPO Model - Risk-Sensitive RL Trading Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://img.icons8.com/color/48/000000/trading.png" type="image/png">
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mô hình CVaR-PPO - Nền tảng giao dịch RL nhạy cảm với rủi ro</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="https://img.icons8.com/color/48/000000/trading.png"
+      type="image/png"
+    />
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        :root {
-            --primary-color: #059669;
-            --secondary-color: #64748b;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --dark-color: #1f2937;
-            --light-color: #f8fafc;
-            --border-color: #e5e7eb;
-        }
+      :root {
+        --primary-color: #059669;
+        --secondary-color: #64748b;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --dark-color: #1f2937;
+        --light-color: #f8fafc;
+        --border-color: #e5e7eb;
+      }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            margin: 0;
-        }
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+      }
 
-        .main-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            margin: 20px;
-            overflow: hidden;
-        }
+      .main-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+        overflow: hidden;
+      }
 
-        .header {
-            background: linear-gradient(135deg, var(--primary-color), #047857);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            position: relative;
-        }
+      .header {
+        background: linear-gradient(135deg, var(--primary-color), #047857);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+      }
 
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+      .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
 
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin: 0;
-        }
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+      }
 
-        .model-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            margin-top: 1rem;
-        }
+      .model-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        margin-top: 1rem;
+      }
 
-        .nav-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 2rem;
-        }
+      .nav-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+      }
 
-        .nav-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 10px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+      .nav-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
 
-        .nav-btn:hover {
-            background: #047857;
-            transform: translateY(-2px);
-            color: white;
-            text-decoration: none;
-        }
+      .nav-btn:hover {
+        background: #047857;
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+      }
 
-        .content-section {
-            padding: 2rem;
-        }
+      .content-section {
+        padding: 2rem;
+      }
 
-        .card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: none;
-            margin-bottom: 2rem;
-            overflow: hidden;
-        }
+      .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border: none;
+        margin-bottom: 2rem;
+        overflow: hidden;
+      }
 
-        .card-header {
-            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.5rem;
-        }
+      .card-header {
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem;
+      }
 
-        .card-title {
-            color: var(--dark-color);
-            font-weight: 600;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+      .card-title {
+        color: var(--dark-color);
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
 
-        .prediction-result {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 2rem;
-            border-radius: 15px;
-            text-align: center;
-            margin: 1rem 0;
-        }
+      .prediction-result {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        margin: 1rem 0;
+      }
 
-        .signal-badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
+      .signal-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
 
-        .signal-buy {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success-color);
-            border: 2px solid var(--success-color);
-        }
+      .signal-buy {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--success-color);
+        border: 2px solid var(--success-color);
+      }
 
-        .signal-sell {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger-color);
-            border: 2px solid var(--danger-color);
-        }
+      .signal-sell {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--danger-color);
+        border: 2px solid var(--danger-color);
+      }
 
-        .signal-hold {
-            background: rgba(245, 158, 11, 0.2);
-            color: var(--warning-color);
-            border: 2px solid var(--warning-color);
-        }
+      .signal-hold {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--warning-color);
+        border: 2px solid var(--warning-color);
+      }
 
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
-        }
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+      }
 
-        .metric-item {
-            text-align: center;
-            padding: 1rem;
-            background: var(--light-color);
-            border-radius: 10px;
-        }
+      .metric-item {
+        text-align: center;
+        padding: 1rem;
+        background: var(--light-color);
+        border-radius: 10px;
+      }
 
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
+      .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+      }
 
-        .metric-label {
-            color: var(--secondary-color);
-            font-size: 0.9rem;
-        }
+      .metric-label {
+        color: var(--secondary-color);
+        font-size: 0.9rem;
+      }
 
-        .btn-primary {
-            background: var(--primary-color);
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
+      .btn-primary {
+        background: var(--primary-color);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
 
-        .btn-primary:hover {
-            background: #047857;
-            transform: translateY(-2px);
-        }
+      .btn-primary:hover {
+        background: #047857;
+        transform: translateY(-2px);
+      }
 
-        .form-control {
-            border-radius: 10px;
-            border: 2px solid var(--border-color);
-            padding: 0.75rem;
-            transition: border-color 0.3s ease;
-        }
+      .form-control {
+        border-radius: 10px;
+        border: 2px solid var(--border-color);
+        padding: 0.75rem;
+        transition: border-color 0.3s ease;
+      }
 
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(5, 150, 105, 0.25);
-        }
+      .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(5, 150, 105, 0.25);
+      }
 
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 2rem;
-        }
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+      }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--border-color);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--border-color);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
 
-        .footer {
-            background: var(--dark-color);
-            color: white;
-            text-align: center;
-            padding: 2rem;
-            margin-top: 2rem;
-        }
+      .footer {
+        background: var(--dark-color);
+        color: white;
+        text-align: center;
+        padding: 2rem;
+        margin-top: 2rem;
+      }
 
-        .risk-highlight {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            border-left: 4px solid #f59e0b;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0 10px 10px 0;
-        }
+      .risk-highlight {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-left: 4px solid #f59e0b;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0 10px 10px 0;
+      }
     </style>
-</head>
-<body>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+  </head>
+  <body>
     <div class="main-container">
-        <!-- Header -->
-        <div class="header">
-            <h1><i class="fas fa-shield-alt"></i> CVaR-PPO Model</h1>
-            <p>Risk-Sensitive Reinforcement Learning with CVaR Constraint</p>
-            <div class="model-badge">
-                <i class="fas fa-shield-alt"></i> CVaR-PPO (Risk-Sensitive)
-            </div>
+      <!-- Header -->
+      <div class="header">
+        <h1><i class="fas fa-shield-alt"></i> Mô hình CVaR-PPO</h1>
+        <p>Học tăng cường nhạy cảm với rủi ro dùng ràng buộc CVaR</p>
+        <div class="model-badge">
+          <i class="fas fa-shield-alt"></i> CVaR-PPO (Nhạy cảm với rủi ro)
         </div>
+      </div>
 
-        <!-- Navigation -->
-        <div class="text-center py-3 bg-light">
-            <a href="/" class="nav-btn">
-                <i class="fas fa-home"></i> Home
-            </a>
-            <a href="/dashboard" class="nav-btn">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-            <a href="/ppo" class="nav-btn" style="background: #2563eb;">
-                <i class="fas fa-brain"></i> PPO
-            </a>
-            <a href="/sortino" class="nav-btn">
-                <i class="fas fa-chart-line"></i> Sortino-PPO
-            </a>
-            <a href="/compare" class="nav-btn">
-                <i class="fas fa-balance-scale"></i> Compare Models
-            </a>
-        </div>
+      <!-- Navigation -->
+      <div class="text-center py-3 bg-light">
+        <a href="/" class="nav-btn"> <i class="fas fa-home"></i> Trang chủ </a>
+        <a href="/dashboard" class="nav-btn">
+          <i class="fas fa-tachometer-alt"></i> Bảng điều khiển
+        </a>
+        <a href="/ppo" class="nav-btn" style="background: #2563eb">
+          <i class="fas fa-brain"></i> PPO
+        </a>
+        <a href="/cvar" class="nav-btn active">
+          <i class="fas fa-shield-alt"></i> CVaR-PPO
+        </a>
+        <a href="/sortino" class="nav-btn">
+          <i class="fas fa-chart-line"></i> Sortino-PPO
+        </a>
+        <a href="/compare" class="nav-btn">
+          <i class="fas fa-balance-scale"></i> So sánh mô hình
+        </a>
+      </div>
 
-        <!-- Content -->
-        <div class="content-section">
-            <!-- Model Description -->
-            <div class="row">
-                <div class="col-lg-10 mx-auto">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">
-                                <i class="fas fa-info-circle"></i> Model Overview
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h6>Risk-Sensitive CVaR-PPO Approach</h6>
-                                    <p>
-                                        This model extends PPO with Conditional Value at Risk (CVaR) constraints to manage tail risk.
-                                        It penalizes the worst 15% of returns, focusing on downside protection and drawdown reduction.
-                                        Uses adaptive lambda parameter (0.16 → 0.10) for optimal risk-return balance.
-                                    </p>
-                                    <div class="risk-highlight">
-                                        <h6><i class="fas fa-exclamation-triangle"></i> Risk Management Focus:</h6>
-                                        <ul class="mb-0">
-                                            <li>Penalizes worst 15% of returns (CVaR)</li>
-                                            <li>Adaptive lambda parameter for risk control</li>
-                                            <li>Enhanced downside protection</li>
-                                            <li>Reduced portfolio drawdowns</li>
-                                        </ul>
-                                    </div>
-                                    <ul>
-                                        <li><strong>Architecture:</strong> Actor-Critic with CVaR constraint</li>
-                                        <li><strong>Risk Measure:</strong> CVaR (15% worst returns)</li>
-                                        <li><strong>Lambda:</strong> Adaptive (0.16 → 0.10)</li>
-                                        <li><strong>Focus:</strong> Downside risk management</li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <div style="font-size: 4rem; color: var(--primary-color); margin-bottom: 1rem;">
-                                        <i class="fas fa-shield-alt"></i>
-                                    </div>
-                                    <div class="metric-value">CVaR-PPO</div>
-                                    <small class="text-muted">Risk-Sensitive</small>
-                                </div>
-                            </div>
-                        </div>
+      <!-- Content -->
+      <div class="content-section">
+        <!-- Model Description -->
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">
+                  <i class="fas fa-info-circle"></i> Tổng quan mô hình
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-8">
+                    <h6>Cách tiếp cận CVaR-PPO nhạy cảm với rủi ro</h6>
+                    <p>
+                      Mô hình này mở rộng PPO bằng ràng buộc Conditional Value
+                      at Risk (CVaR) để quản lý rủi ro đuôi. Mô hình phạt 15%
+                      lợi nhuận xấu nhất, tập trung bảo vệ khi thị trường giảm
+                      và hạn chế mức sụt giảm danh mục. Tham số lambda thích
+                      nghi (0.16 → 0.10) được dùng để cân bằng rủi ro và lợi
+                      nhuận.
+                    </p>
+                    <div class="risk-highlight">
+                      <h6>
+                        <i class="fas fa-exclamation-triangle"></i> Trọng tâm
+                        quản trị rủi ro:
+                      </h6>
+                      <ul class="mb-0">
+                        <li>Phạt 15% lợi nhuận xấu nhất (CVaR)</li>
+                        <li>
+                          Điều chỉnh lambda thích nghi để kiểm soát rủi ro
+                        </li>
+                        <li>Tăng khả năng bảo vệ khi thị trường giảm</li>
+                        <li>Giảm mức sụt giảm danh mục</li>
+                      </ul>
                     </div>
-                </div>
-            </div>
-
-            <!-- Real-time Prediction -->
-            <div class="row mt-4">
-                <div class="col-lg-8 mx-auto">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">
-                                <i class="fas fa-chart-line"></i> Real-time Prediction
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label for="symbol" class="form-label">
-                                            <i class="fas fa-search"></i> Stock Symbol
-                                        </label>
-                                        <input type="text" class="form-control" id="symbol" placeholder="e.g., SPY, AAPL, TSLA" value="SPY">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label class="form-label">
-                                            <i class="fas fa-shield-alt"></i> Risk Management
-                                        </label>
-                                        <div class="alert alert-success">
-                                            <small>CVaR-PPO - Manages tail risk with CVaR constraints</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="text-center mb-4">
-                                <button id="predictBtn" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-shield-alt"></i> Get CVaR-PPO Prediction
-                                </button>
-                            </div>
-
-                            <!-- Loading -->
-                            <div id="loading" class="loading">
-                                <div class="spinner"></div>
-                                <p>Fetching market data and generating risk-sensitive prediction...</p>
-                            </div>
-
-                            <!-- Results -->
-                            <div id="results" style="display: none;">
-                                <div class="prediction-result">
-                                    <h4>CVaR-PPO Model Prediction</h4>
-                                    <div id="signalBadge" class="signal-badge mt-3"></div>
-                                    <div class="metric-grid mt-4">
-                                        <div class="metric-item">
-                                            <div class="metric-value" id="actionValue">-</div>
-                                            <div class="metric-label">Action</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-value" id="strengthValue">-</div>
-                                            <div class="metric-label">Strength (%)</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-value" id="priceValue">-</div>
-                                            <div class="metric-label">Current Price</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-value" id="timestampValue">-</div>
-                                            <div class="metric-label">Timestamp</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="alert alert-info">
-                                    <h6><i class="fas fa-lightbulb"></i> Risk-Sensitive Signal Guide:</h6>
-                                    <ul class="mb-0">
-                                        <li><strong>BUY:</strong> Action > 0.1 - Conservative buying with risk management</li>
-                                        <li><strong>SELL:</strong> Action < -0.1 - Risk-averse selling to protect downside</li>
-                                        <li><strong>HOLD:</strong> -0.1 ≤ Action ≤ 0.1 - Risk-neutral position</li>
-                                    </ul>
-                                    <small class="text-muted">CVaR constraints make this model more conservative than standard PPO</small>
-                                </div>
-                            </div>
-                        </div>
+                    <ul>
+                      <li>
+                        <strong>Kiến trúc:</strong> Actor-Critic với ràng buộc
+                        CVaR
+                      </li>
+                      <li>
+                        <strong>Thước đo rủi ro:</strong> CVaR (15% lợi nhuận
+                        xấu nhất)
+                      </li>
+                      <li><strong>Lambda:</strong> Thích nghi (0.16 → 0.10)</li>
+                      <li>
+                        <strong>Trọng tâm:</strong> Quản lý rủi ro giảm giá
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="col-md-4 text-center">
+                    <div
+                      style="
+                        font-size: 4rem;
+                        color: var(--primary-color);
+                        margin-bottom: 1rem;
+                      "
+                    >
+                      <i class="fas fa-shield-alt"></i>
                     </div>
+                    <div class="metric-value">CVaR-PPO</div>
+                    <small class="text-muted">Nhạy cảm với rủi ro</small>
+                  </div>
                 </div>
+              </div>
             </div>
-
-            <!-- Backtest Section -->
-            <div class="row mt-4">
-                <div class="col-lg-10 mx-auto">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">
-                                <i class="fas fa-chart-bar"></i> Backtest CVaR-PPO Model
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="alert alert-warning">
-                                <h6><i class="fas fa-exclamation-triangle"></i> Important Setup Guide:</h6>
-                                <ul class="mb-0">
-                                    <li><strong>Date Range:</strong> Must be AFTER model training period (after Jan 2022)</li>
-                                    <li><strong>Recommended:</strong> 2022-01-01 to 2022-12-31 (Bear Market - tests risk management)</li>
-                                    <li><strong>Processing Time:</strong> Expect 30-60 seconds for 1-2 years of data</li>
-                                    <li><strong>Risk Focus:</strong> CVaR model excels in volatile/down markets</li>
-                                </ul>
-                            </div>
-
-                            <form id="backtestForm">
-                                {% csrf_token %}
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="backtestSymbol" class="form-label">
-                                                <i class="fas fa-search"></i> Stock Symbol
-                                            </label>
-                                            <input type="text" class="form-control" id="backtestSymbol" value="SPY" readonly>
-                                            <small class="text-muted">SPY recommended (same as training)</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="initialBalance" class="form-label">
-                                                <i class="fas fa-dollar-sign"></i> Initial Balance ($)
-                                            </label>
-                                            <input type="number" class="form-control" id="initialBalance" value="10000">
-                                            <small class="text-muted">Default: $10,000</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="startDate" class="form-label">
-                                                <i class="fas fa-calendar-alt"></i> Start Date
-                                            </label>
-                                            <input type="date" class="form-control" id="startDate" value="2022-01-01">
-                                            <small class="text-muted">Bear market recommended for CVaR testing</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="endDate" class="form-label">
-                                                <i class="fas fa-calendar-alt"></i> End Date
-                                            </label>
-                                            <input type="date" class="form-control" id="endDate" value="2022-12-31">
-                                            <small class="text-muted">Test risk management in volatile period</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="text-center">
-                                    <button type="submit" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-play"></i> Run CVaR-PPO Backtest
-                                    </button>
-                                </div>
-                            </form>
-
-                            <!-- Backtest Results -->
-                            <div id="backtestResults" style="display: none;">
-                                <hr>
-                                <h5 class="text-center mb-4">Backtest Results - CVaR-PPO Model</h5>
-                                <div id="backtestChart" style="height: 400px;"></div>
-                                <div class="row mt-4">
-                                    <div class="col-md-3">
-                                        <div class="metric-item">
-                                            <div class="metric-value" id="finalBalance">-</div>
-                                            <div class="metric-label">Final Balance</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="metric-item">
-                                            <div class="metric-value" id="totalReturn">-</div>
-                                            <div class="metric-label">Total Return</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="metric-item">
-                                            <div class="metric-value" id="sharpeRatio">-</div>
-                                            <div class="metric-label">Sharpe Ratio</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="metric-item">
-                                            <div class="metric-value" id="maxDrawdown">-</div>
-                                            <div class="metric-label">Max Drawdown</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="alert alert-success mt-3">
-                                    <h6><i class="fas fa-shield-alt"></i> Risk Management Metrics:</h6>
-                                    <p class="mb-0">CVaR-PPO typically shows lower drawdowns and more conservative trading behavior compared to risk-neutral PPO.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            <p>Nền tảng Giao dịch RL Nhạy cảm với Rủi ro | Được xây dựng với PyTorch & Django | Chỉ dành cho Mục đích Giáo dục</p>
-            <p><small>© 2026 - CVaR-PPO Model: Risk-Sensitive Reinforcement Learning with CVaR Constraints</small></p>
+        <!-- Real-time Prediction -->
+        <div class="row mt-4">
+          <div class="col-lg-8 mx-auto">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">
+                  <i class="fas fa-chart-line"></i> Realtime Signal
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group mb-3">
+                      <label for="symbol" class="form-label">
+                        <i class="fas fa-search"></i> Mã giao dịch
+                      </label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="symbol"
+                        placeholder="Ví dụ: SPY, AAPL, TSLA"
+                        value="SPY"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group mb-3">
+                      <label class="form-label">
+                        <i class="fas fa-shield-alt"></i> Quản trị rủi ro
+                      </label>
+                      <div class="alert alert-success">
+                        <small
+                          >CVaR-PPO - Quản lý rủi ro đuôi bằng ràng buộc
+                          CVaR</small
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="text-center mb-4">
+                  <button id="predictBtn" class="btn btn-primary btn-lg">
+                    <i class="fas fa-shield-alt"></i> Lấy tín hiệu CVaR-PPO
+                  </button>
+                </div>
+
+                <div
+                  id="rtError"
+                  class="alert alert-danger"
+                  style="display: none"
+                ></div>
+
+                <!-- Loading -->
+                <div id="loading" class="loading">
+                  <div class="spinner"></div>
+                  <p>
+                    Đang lấy dữ liệu thị trường và tạo tín hiệu nhạy cảm với rủi
+                    ro...
+                  </p>
+                </div>
+
+                <!-- Results -->
+                <div id="results" style="display: none">
+                  <div class="prediction-result">
+                    <h4>Tín hiệu giao dịch - CVaR-PPO</h4>
+                    <div id="signalBadge" class="signal-badge mt-3"></div>
+                    <div class="metric-grid mt-4">
+                      <div class="metric-item">
+                        <div class="metric-value" id="actionValue">-</div>
+                        <div class="metric-label">Hành động</div>
+                      </div>
+                      <div class="metric-item">
+                        <div class="metric-value" id="strengthValue">-</div>
+                        <div class="metric-label">Độ mạnh tín hiệu (%)</div>
+                      </div>
+                      <div class="metric-item">
+                        <div class="metric-value" id="priceValue">-</div>
+                        <div class="metric-label">Giá hiện tại</div>
+                      </div>
+                      <div class="metric-item">
+                        <div class="metric-value" id="timestampValue">-</div>
+                        <div class="metric-label">Thời điểm cập nhật</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="alert alert-info">
+                    <h6>
+                      <i class="fas fa-lightbulb"></i> Hướng dẫn tín hiệu nhạy
+                      cảm với rủi ro:
+                    </h6>
+                    <ul class="mb-0">
+                      <li>
+                        <strong>MUA:</strong> Hành động &gt; 0.1 - Gợi ý mua có
+                        xét đến rủi ro
+                      </li>
+                      <li>
+                        <strong>BÁN:</strong> Hành động &lt; -0.1 - Gợi ý bán để
+                        bảo vệ khi rủi ro giảm giá tăng
+                      </li>
+                      <li>
+                        <strong>GIỮ:</strong> -0.1 ≤ Hành động ≤ 0.1 - Giữ
+                        nguyên vị thế
+                      </li>
+                    </ul>
+                    <small class="text-muted"
+                      >Ràng buộc CVaR thường làm mô hình thận trọng hơn PPO
+                      chuẩn.</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Backtest Section -->
+        <div class="row mt-4">
+          <div class="col-lg-10 mx-auto">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">
+                  <i class="fas fa-chart-bar"></i> Backtest mô hình CVaR-PPO
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-warning">
+                  <h6>
+                    <i class="fas fa-exclamation-triangle"></i> Hướng dẫn thiết
+                    lập:
+                  </h6>
+                  <ul class="mb-0">
+                    <li>
+                      <strong>Khoảng thời gian:</strong> Nên nằm sau giai đoạn
+                      huấn luyện mô hình (sau tháng 01/2022)
+                    </li>
+                    <li>
+                      <strong>Gợi ý:</strong> 2022-01-01 đến 2022-12-31 để kiểm
+                      tra khả năng quản trị rủi ro trong thị trường giảm
+                    </li>
+                    <li>
+                      <strong>Thời gian xử lý:</strong> Khoảng 30-60 giây cho
+                      1-2 năm dữ liệu
+                    </li>
+                    <li>
+                      <strong>Trọng tâm rủi ro:</strong> CVaR phù hợp để quan
+                      sát hành vi trong giai đoạn biến động mạnh
+                    </li>
+                  </ul>
+                </div>
+
+                <form id="backtestForm">
+                  {% csrf_token %}
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group mb-3">
+                        <label for="backtestSymbol" class="form-label">
+                          <i class="fas fa-search"></i> Mã giao dịch
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="backtestSymbol"
+                          value="SPY"
+                          readonly
+                        />
+                        <small class="text-muted"
+                          >Khuyến nghị dùng SPY như dữ liệu huấn luyện</small
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group mb-3">
+                        <label for="initialBalance" class="form-label">
+                          <i class="fas fa-dollar-sign"></i> Vốn ban đầu ($)
+                        </label>
+                        <input
+                          type="number"
+                          class="form-control"
+                          id="initialBalance"
+                          value="10000"
+                        />
+                        <small class="text-muted">Mặc định: $10,000</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group mb-3">
+                        <label for="startDate" class="form-label">
+                          <i class="fas fa-calendar-alt"></i> Ngày bắt đầu
+                        </label>
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="startDate"
+                          value="2022-01-01"
+                        />
+                        <small class="text-muted"
+                          >Khuyến nghị dùng giai đoạn thị trường giảm để kiểm
+                          tra CVaR</small
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group mb-3">
+                        <label for="endDate" class="form-label">
+                          <i class="fas fa-calendar-alt"></i> Ngày kết thúc
+                        </label>
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="endDate"
+                          value="2022-12-31"
+                        />
+                        <small class="text-muted"
+                          >Kiểm tra quản trị rủi ro trong giai đoạn biến
+                          động</small
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                      <i class="fas fa-play"></i> Chạy Backtest CVaR-PPO
+                    </button>
+                  </div>
+                  <div
+                    id="btError"
+                    class="alert alert-danger"
+                    style="display: none"
+                  ></div>
+                </form>
+
+                <!-- Backtest Results -->
+                <div id="backtestResults" style="display: none">
+                  <hr />
+                  <h5 class="text-center mb-4">
+                    Kết quả backtest - Mô hình CVaR-PPO
+                  </h5>
+                  <div id="backtestChart" style="height: 400px"></div>
+                  <div class="row mt-4">
+                    <div class="col-md-3">
+                      <div class="metric-item">
+                        <div class="metric-value" id="finalBalance">-</div>
+                        <div class="metric-label">Final Portfolio Value</div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="metric-item">
+                        <div class="metric-value" id="totalReturn">-</div>
+                        <div class="metric-label">Total Return (%)</div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="metric-item">
+                        <div class="metric-value" id="sharpeRatio">-</div>
+                        <div class="metric-label">Sharpe Ratio</div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="metric-item">
+                        <div class="metric-value" id="maxDrawdown">-</div>
+                        <div class="metric-label">Max Drawdown (%)</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-4">
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#backtestDetails"
+                      aria-expanded="false"
+                      aria-controls="backtestDetails"
+                    >
+                      Xem chỉ số chi tiết
+                    </button>
+                    <div class="collapse mt-3" id="backtestDetails">
+                      <div class="card card-body">
+                        <table class="metrics-table w-100">
+                          <thead>
+                            <tr>
+                              <th>Metric</th>
+                              <th>Value</th>
+                            </tr>
+                          </thead>
+                          <tbody id="backtestMetricsBody"></tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="alert alert-success mt-3">
+                    <h6>
+                      <i class="fas fa-shield-alt"></i> Chỉ số quản trị rủi ro:
+                    </h6>
+                    <p class="mb-0">
+                      CVaR-PPO thường có hành vi giao dịch thận trọng hơn PPO
+                      trung lập rủi ro.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>
+          Nền tảng giao dịch RL nhạy cảm với rủi ro | Xây dựng bằng PyTorch &
+          Django | Chỉ dành cho mục đích học tập
+        </p>
+        <p>
+          <small
+            >© 2026 - Mô hình CVaR-PPO: Học tăng cường nhạy cảm với rủi ro dùng
+            CVaR</small
+          >
+        </p>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/main.js' %}"></script>
     <script>
-        // Get CSRF token from cookie
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
+      // Get CSRF token from cookie
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1),
+              );
+              break;
             }
-            return cookieValue;
+          }
         }
+        return cookieValue;
+      }
 
-        // CVaR-PPO Model specific functionality
-        document.getElementById('predictBtn').addEventListener('click', async function() {
-            const symbol = document.getElementById('symbol').value;
-            const loading = document.getElementById('loading');
-            const results = document.getElementById('results');
+      // CVaR-PPO Model specific functionality
+      document
+        .getElementById("predictBtn")
+        .addEventListener("click", async function () {
+          const symbol = document.getElementById("symbol").value;
+          const loading = document.getElementById("loading");
+          const results = document.getElementById("results");
 
-            loading.style.display = 'block';
-            results.style.display = 'none';
+          loading.style.display = "block";
+          results.style.display = "none";
 
-            try {
-                const response = await fetch('/api/realtime_predict/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        symbol: symbol,
-                        model: 'cvar'
-                    })
-                });
+          try {
+            const response = await fetch("/api/realtime_predict/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+              },
+              body: JSON.stringify({
+                symbol: symbol,
+                model: "cvar",
+              }),
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (data.success) {
-                    displayPrediction(data.cvar);
-                    results.style.display = 'block';
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (error) {
-                alert('Error fetching prediction: ' + error.message);
+            if (data.success) {
+              displayPrediction(data.cvar, data);
+              results.style.display = "block";
+            } else {
+              const rtErr = document.getElementById("rtError");
+              rtErr.textContent = "Lỗi: " + (data.error || "Không có dữ liệu");
+              rtErr.style.display = "block";
             }
+          } catch (error) {
+            const rtErr = document.getElementById("rtError");
+            rtErr.textContent = "Lỗi khi lấy tín hiệu: " + error.message;
+            rtErr.style.display = "block";
+          }
 
-            loading.style.display = 'none';
+          loading.style.display = "none";
         });
 
-        function displayPrediction(prediction) {
-            const signalBadge = document.getElementById('signalBadge');
-            const actionValue = document.getElementById('actionValue');
-            const strengthValue = document.getElementById('strengthValue');
+      function displayPrediction(prediction, responseData) {
+        const signalBadge = document.getElementById("signalBadge");
+        const actionValue = document.getElementById("actionValue");
+        const strengthValue = document.getElementById("strengthValue");
 
-            if (prediction && prediction.action !== undefined) {
-                actionValue.textContent = prediction.action.toFixed(4);
-                strengthValue.textContent = (Math.abs(prediction.action) * 100).toFixed(1) + '%';
+        if (prediction && prediction.action !== undefined) {
+          actionValue.textContent = prediction.action.toFixed(4);
+          strengthValue.textContent =
+            (Math.abs(prediction.action) * 100).toFixed(1) + "%";
 
-                // Determine signal
-                let signalClass, signalText;
-                if (prediction.action > 0.1) {
-                    signalClass = 'signal-buy';
-                    signalText = 'MUA';
-                } else if (prediction.action < -0.1) {
-                    signalClass = 'signal-sell';
-                    signalText = 'BÁN';
-                } else {
-                    signalClass = 'signal-hold';
-                    signalText = 'GIỮ';
-                }
+          // Determine signal
+          let signalClass, signalText;
+          if (prediction.action > 0.1) {
+            signalClass = "signal-buy";
+            signalText = "MUA";
+          } else if (prediction.action < -0.1) {
+            signalClass = "signal-sell";
+            signalText = "BÁN";
+          } else {
+            signalClass = "signal-hold";
+            signalText = "GIỮ";
+          }
 
-                signalBadge.className = `signal-badge ${signalClass}`;
-                signalBadge.textContent = `Tín hiệu ${signalText}`;
-            }
-
-            // Update price and timestamp
-            if (prediction && prediction.price !== undefined) {
-                document.getElementById('priceValue').textContent = '$' + prediction.price.toFixed(2);
-            }
-            if (prediction && prediction.timestamp) {
-                document.getElementById('timestampValue').textContent = new Date(prediction.timestamp).toLocaleString();
-            }
+          signalBadge.className = `signal-badge ${signalClass}`;
+          signalBadge.textContent = `Tín hiệu ${signalText}`;
         }
 
-        // Backtest form handling
-        document.getElementById('backtestForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        // Update price and timestamp (support top-level response fields)
+        const price =
+          prediction && prediction.price !== undefined
+            ? prediction.price
+            : responseData && responseData.current_price !== undefined
+              ? responseData.current_price
+              : null;
+        const ts =
+          prediction && prediction.timestamp
+            ? prediction.timestamp
+            : responseData && responseData.timestamp
+              ? responseData.timestamp
+              : null;
 
-            const formData = {
-                symbol: document.getElementById('backtestSymbol').value,
-                start_date: document.getElementById('startDate').value,
-                end_date: document.getElementById('endDate').value,
-                model: 'cvar',
-                initial_balance: parseFloat(document.getElementById('initialBalance').value)
-            };
+        function formatTimestamp(tsVal) {
+          const d = new Date(tsVal);
+          if (isNaN(d)) return tsVal;
+          const pad = (n) => String(n).padStart(2, "0");
+          return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        }
 
-            try {
-                const response = await fetch('/api/backtest/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify(formData)
-                });
+        if (price !== null) {
+          document.getElementById("priceValue").textContent =
+            "$" + Number(price).toFixed(2);
+        }
+        if (ts) {
+          document.getElementById("timestampValue").textContent =
+            formatTimestamp(ts);
+        }
+      }
 
-                const data = await response.json();
+      // Backtest form handling
+      document
+        .getElementById("backtestForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
 
-                if (data.success && data.results.cvar) {
-                    displayBacktestResults(data.results.cvar, data.data_info);
-                    document.getElementById('backtestResults').style.display = 'block';
-                } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                }
-            } catch (error) {
-                alert('Error running backtest: ' + error.message);
+          const formData = {
+            symbol: document.getElementById("backtestSymbol").value,
+            start_date: document.getElementById("startDate").value,
+            end_date: document.getElementById("endDate").value,
+            model: "cvar",
+            initial_balance: parseFloat(
+              document.getElementById("initialBalance").value,
+            ),
+          };
+
+          try {
+            const response = await fetch("/api/backtest/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+              },
+              body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.results.cvar) {
+              displayBacktestResults(data.results.cvar, data.data_info);
+              document.getElementById("backtestResults").style.display =
+                "block";
+            } else {
+              const btErr = document.getElementById("btError");
+              btErr.textContent =
+                "Lỗi: " + (data.error || "Lỗi không xác định");
+              btErr.style.display = "block";
             }
+          } catch (error) {
+            const btErr = document.getElementById("btError");
+            btErr.textContent = "Lỗi khi chạy backtest: " + error.message;
+            btErr.style.display = "block";
+          }
         });
 
-        function displayBacktestResults(results, dataInfo) {
-            if (!results) return;
+      function displayBacktestResults(results, dataInfo) {
+        if (!results) return;
 
-            // Update metrics - results contains metrics and final_value
-            const metrics = results.metrics || {};
-            const finalValue = results.final_value || 0;
+        // Update metrics - results contains metrics and final_value
+        const metrics = results.metrics || {};
+        const finalValue = results.final_value || 0;
 
-            if (finalValue !== undefined) {
-                document.getElementById('finalBalance').textContent = '$' + finalValue.toFixed(2);
-            }
-            if (metrics.total_return !== undefined) {
-                document.getElementById('totalReturn').textContent = (metrics.total_return * 100).toFixed(2) + '%';
-            }
-            if (metrics.sharpe_ratio !== undefined) {
-                document.getElementById('sharpeRatio').textContent = metrics.sharpe_ratio.toFixed(2);
-            }
-            if (metrics.max_drawdown !== undefined) {
-                document.getElementById('maxDrawdown').textContent = (metrics.max_drawdown * 100).toFixed(2) + '%';
-            }
-
-            // Create chart - use history for portfolio values
-            if (results.history && results.history.length > 0) {
-                const portfolioValues = results.history.map(h => h.portfolio_value);
-                const chartData = [{
-                    x: results.history.map((_, i) => i),
-                    y: portfolioValues,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'Danh mục CVaR-PPO',
-                    line: {color: '#059669'}
-                }];
-
-                const layout = {
-                    title: `Kiểm tra Lại Mô hình CVaR-PPO: ${dataInfo.symbol} (${dataInfo.start_date} đến ${dataInfo.end_date})`,
-                    xaxis: {title: 'Ngày Giao dịch'},
-                    yaxis: {title: 'Giá trị Danh mục ($)'},
-                    showlegend: true
-                };
-
-                Plotly.newPlot('backtestChart', chartData, layout);
-            }
+        if (finalValue !== undefined) {
+          document.getElementById("finalBalance").textContent =
+            "$" + finalValue.toFixed(2);
         }
+        if (metrics.total_return !== undefined) {
+          document.getElementById("totalReturn").textContent =
+            (metrics.total_return * 100).toFixed(2) + "%";
+        }
+        if (metrics.sharpe_ratio !== undefined) {
+          document.getElementById("sharpeRatio").textContent =
+            metrics.sharpe_ratio.toFixed(2);
+        }
+        if (metrics.max_drawdown !== undefined) {
+          document.getElementById("maxDrawdown").textContent =
+            (metrics.max_drawdown * 100).toFixed(2) + "%";
+        }
+
+        // Create chart - use history for portfolio values
+        if (results.history && results.history.length > 0) {
+          const portfolioValues = results.history.map((h) => h.portfolio_value);
+          const chartData = [
+            {
+              x: results.history.map((_, i) => i),
+              y: portfolioValues,
+              type: "scatter",
+              mode: "lines",
+              name: "Danh mục CVaR-PPO",
+              line: { color: "#059669" },
+            },
+          ];
+
+          const layout = {
+            title: `Kiểm tra lại mô hình CVaR-PPO: ${dataInfo.symbol} (${dataInfo.start_date} đến ${dataInfo.end_date})`,
+            xaxis: { title: "Ngày giao dịch" },
+            yaxis: { title: "Giá trị danh mục ($)" },
+            showlegend: true,
+          };
+
+          Plotly.newPlot("backtestChart", chartData, layout);
+        }
+        // Populate detailed metrics table (if present)
+        const detailsBody = document.getElementById("backtestMetricsBody");
+        if (detailsBody) {
+          detailsBody.innerHTML = "";
+          const rows = [];
+          if (metrics.win_rate !== undefined)
+            rows.push(["Win Rate", (metrics.win_rate * 100).toFixed(2) + "%"]);
+          if (metrics.volatility !== undefined)
+            rows.push([
+              "Volatility",
+              (metrics.volatility * 100).toFixed(2) + "%",
+            ]);
+          if (metrics.num_trades !== undefined)
+            rows.push(["Number of Trades", metrics.num_trades]);
+
+          rows.forEach((r) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${r[0]}</td><td>${r[1]}</td>`;
+            detailsBody.appendChild(tr);
+          });
+        }
+      }
     </script>
-</body>
+  </body>
 </html>
