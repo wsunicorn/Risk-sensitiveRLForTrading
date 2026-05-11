@@ -44,12 +44,13 @@ function switchTab(tabName) {
 // ============================================================================
 
 async function checkStatus() {
+  const statusIndicator = document.getElementById("statusIndicator");
+  const statusText = document.getElementById("statusText");
+  if (!statusIndicator || !statusText) return;
+
   try {
     const response = await fetch("/api/status/");
     const data = await response.json();
-
-    const statusIndicator = document.getElementById("statusIndicator");
-    const statusText = document.getElementById("statusText");
 
     if (data.packages_available) {
       statusIndicator.className = "status-indicator online";
@@ -62,8 +63,6 @@ async function checkStatus() {
     }
   } catch (error) {
     console.error("Lỗi khi kiểm tra trạng thái:", error);
-    const statusIndicator = document.getElementById("statusIndicator");
-    const statusText = document.getElementById("statusText");
     statusIndicator.className = "status-indicator offline";
     statusText.textContent = "Lỗi hệ thống";
   }
@@ -634,18 +633,30 @@ function createRadarChart(results) {
 // ============================================================================
 
 function showLoading(loadingId, resultsId, errorId) {
-  document.getElementById(loadingId).style.display = "block";
-  if (resultsId) document.getElementById(resultsId).style.display = "none";
-  if (errorId) document.getElementById(errorId).style.display = "none";
+  const loadingEl = document.getElementById(loadingId);
+  if (loadingEl) loadingEl.style.display = "block";
+  if (resultsId) {
+    const resultsEl = document.getElementById(resultsId);
+    if (resultsEl) resultsEl.style.display = "none";
+  }
+  if (errorId) {
+    const errorEl = document.getElementById(errorId);
+    if (errorEl) errorEl.style.display = "none";
+  }
 }
 
 function hideLoading(loadingId, resultsId) {
-  document.getElementById(loadingId).style.display = "none";
-  if (resultsId) document.getElementById(resultsId).style.display = "block";
+  const loadingEl = document.getElementById(loadingId);
+  if (loadingEl) loadingEl.style.display = "none";
+  if (resultsId) {
+    const resultsEl = document.getElementById(resultsId);
+    if (resultsEl) resultsEl.style.display = "block";
+  }
 }
 
 function showError(errorId, message) {
   const errorEl = document.getElementById(errorId);
+  if (!errorEl) return;
   errorEl.textContent = message;
   errorEl.style.display = "block";
 }
@@ -655,8 +666,10 @@ function setDefaultDates() {
   const startDate = new Date();
   startDate.setFullYear(startDate.getFullYear() - 1);
 
-  document.getElementById("bt-end").valueAsDate = endDate;
-  document.getElementById("bt-start").valueAsDate = startDate;
+  const btEnd = document.getElementById("bt-end");
+  const btStart = document.getElementById("bt-start");
+  if (btEnd) btEnd.valueAsDate = endDate;
+  if (btStart) btStart.valueAsDate = startDate;
 }
 
 // Format number as currency
