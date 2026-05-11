@@ -3,6 +3,13 @@
 import os
 import sys
 
+# Import torch here in the main thread to prevent WinError 1114 
+# when Django tries to import it in the reloader thread.
+try:
+    import torch
+except ImportError:
+    pass
+
 
 def main():
     """Run administrative tasks."""

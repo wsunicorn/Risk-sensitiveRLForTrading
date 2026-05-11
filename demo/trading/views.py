@@ -44,7 +44,7 @@ CONFIG = {
     'DEVICE': 'cpu'
 }
 
-ARTIFACT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ARTIFACT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'weights')
 YFINANCE_CACHE_DIR = os.path.join(tempfile.gettempdir(), 'rsrl_yfinance_cache')
 REALTIME_MARKET_DATA_ERROR = "Không lấy được dữ liệu thị trường cho {symbol}. Hãy kiểm tra kết nối hoặc thử lại."
 
