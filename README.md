@@ -41,7 +41,10 @@ Agent quan sát thị trường qua một vector trạng thái gồm **19 chiề
   - Còn lại `[-0.01, 0.01]`: **HOLD** (Đứng ngoài hoặc giữ nguyên).
 - **Frictions (Chi phí ma sát):** Mô phỏng chi phí giao dịch (Transaction Cost) `0.1%` và trượt giá (Slippage) `0.05%`. Điều này ép Agent không được giao dịch "quá độ" (overtrading) vì mỗi lần trade đều mất phí.
 - **Reward (Phần thưởng):** Mặc định ở mỗi bước thời gian $t$, phần thưởng là tỷ suất lợi nhuận của danh mục: 
-  $$r_t = \frac{\text{Portfolio Value}_{t} - \text{Portfolio Value}_{t-1}}{\text{Portfolio Value}_{t-1}}$$
+
+$$
+r_t = \frac{\text{Portfolio Value}_{t} - \text{Portfolio Value}_{t-1}}{\text{Portfolio Value}_{t-1}}
+$$
 
 ## 4. Kiến trúc Mạng Neural (Actor-Critic Network)
 
@@ -66,7 +69,10 @@ PPO là thuật toán tiêu chuẩn, tối đa hóa trực tiếp hàm lợi nhu
 Thêm thành phần rủi ro đuôi (Tail Risk) trực tiếp vào Hàm Loss của PPO. 
 - **Định nghĩa CVaR:** Conditional Value-at-Risk ở mức $\alpha=0.15$ tính toán trung bình của 15% lợi nhuận *tệ nhất* trong batch. 
 - **Toán học:** Hàm Loss của policy giờ đây được cộng thêm một khoản penalty: 
-  $$\text{Loss} = \text{Loss}_{PPO} + \lambda \times \max(0, -CVaR_{\alpha})$$
+
+$$
+\text{Loss} = \text{Loss}_{PPO} + \lambda \times \max(0, -CVaR_{\alpha})
+$$
   *(Lưu ý thuật toán thực tế đã chuẩn hóa return trong batch trước khi tính CVaR để tránh hàm loss phát triển đến vô hạn).*
 - **Cách thức hoạt động:** Trọng số $\lambda$ bắt đầu ở mức 0.15 và phân rã (decay) dần với hệ số 0.999. Hàm penalty này buộc Agent phải thay đổi trọng số neural network sao cho các tình huống "thua lỗ nặng" (nằm trong 15% đuôi) ít xảy ra hơn.
 - **Kết quả:** Max Drawdown được hạn chế tối đa trong giai đoạn khủng hoảng. Tuy nhiên, trong Bull market, do bị "sợ hãi" rủi ro đuôi, mô hình có thể e dè và sinh lời ít hơn PPO cơ bản.
@@ -75,7 +81,10 @@ Thêm thành phần rủi ro đuôi (Tail Risk) trực tiếp vào Hàm Loss c�
 Thay vì phạt vào Hàm Loss như CVaR-PPO, Sortino-PPO phạt trực tiếp vào **Hàm Reward** trong Environment.
 - **Cơ chế:** Tính toán độ lệch chuẩn của các khoản lợi nhuận âm (downside volatility) trong khung thời gian 60 ngày gần nhất (rolling window).
 - **Toán học:** 
-  $$\text{Reward}_{Sortino} = r_t - \lambda \times (\sigma_{downside})^2$$
+
+$$
+\text{Reward}_{Sortino} = r_t - \lambda \times (\sigma_{downside})^2
+$$
   (Trong code, $\lambda = 0.2$ và mức phạt được cap (giới hạn) không quá 50% mức lợi nhuận tuyệt đối để không làm sụp đổ quá trình hội tụ học).
 - **Kết quả:** Thuật toán mang tính "cân bằng" hơn. Nó tối ưu hóa tỷ lệ Sortino (Lợi nhuận / Rủi ro sụt giảm). Nó tốt hơn PPO trong Down-trend và không quá "nhát gan" như CVaR-PPO trong Up-trend.
 
