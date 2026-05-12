@@ -1,135 +1,162 @@
 # Risk-Sensitive Reinforcement Learning for Trading
 
-## 1. Tổng quan Dự án (Project Overview)
+Dự án xây dựng và so sánh các chiến lược giao dịch tự động bằng học tăng cường, tập trung vào câu hỏi: một agent có thể vừa tìm kiếm lợi nhuận, vừa kiểm soát rủi ro sụt giảm mạnh của thị trường hay không?
 
-Đây là hệ thống giao dịch tự động bằng **Học tăng cường (Reinforcement Learning - RL)**, được xây dựng để giải quyết bài toán: *Làm thế nào để một agent giao dịch không chỉ tối đa hóa lợi nhuận mà còn tự động nhận biết và phòng vệ trước các rủi ro sụt giảm mạnh (tail-risk/downside risk) của thị trường?*
+Notebook chính là [risk_sensitive_trading.ipynb](risk_sensitive_trading.ipynb). Từ notebook này, dự án triển khai ba biến thể agent:
 
-Thay vì dự đoán giá (Price Prediction) như các mô hình Supervised Learning truyền thống (LSTM, ARIMA), dự án này mô hình hóa việc giao dịch thành bài toán **Markov Decision Process (MDP)**. Agent sẽ trực tiếp học ra **Chính sách (Policy)** giao dịch: Ở trạng thái thị trường hiện tại, nên đưa ra quyết định (Action) Mua/Bán/Giữ với tỷ trọng bao nhiêu.
+- **PPO**: baseline tối ưu lợi nhuận kỳ vọng, chưa có cơ chế phạt rủi ro riêng.
+- **CVaR-PPO**: thêm ràng buộc rủi ro đuôi bằng Conditional Value-at-Risk.
+- **Sortino-PPO**: điều chỉnh reward theo downside deviation để ưu tiên rủi ro giảm giá.
 
-Hệ thống cung cấp một pipeline hoàn chỉnh từ thu thập dữ liệu, huấn luyện mô hình, backtest đến một Web App (Django) trực quan để demo và so sánh các chiến lược.
+Dự án cũng có demo Web App bằng Django trong thư mục [demo](demo), dùng model đã train để chạy realtime signal, backtest và so sánh chiến lược.
 
-## 2. Xử lý Dữ liệu & Kỹ nghệ Đặc trưng (Data Pipeline & Feature Engineering)
+> Lưu ý: Đây là dự án nghiên cứu/học thuật, không phải khuyến nghị đầu tư.
 
-Dự án sử dụng dữ liệu lịch sử OHLCV (Open, High, Low, Close, Volume) tải từ Yahoo Finance qua thư viện `yfinance`. 
+## Mục Lục
 
-### 2.1. Phân chia dữ liệu (Data Split - Regime Based)
-Để chứng minh Agent không bị "học vẹt" (overfitting) và có thể sống sót qua các pha thị trường khác nhau, dữ liệu được chia có chủ đích:
-- **Tập Train (2018 - 2021):** Bao gồm cả uptrend và đợt sụp đổ kinh hoàng do COVID-19 (tháng 2-3/2020) để Agent học cách đối phó với khủng hoảng.
-- **Tập Validation (2022):** Giai đoạn thị trường gấu (Bear Market), lạm phát cao, chứng khoán giảm điểm liên tục (-19%).
-- **Tập Test (2023 - 2024):** Giai đoạn thị trường phục hồi và tăng trưởng (Bull run). Mô hình hoàn toàn chưa từng nhìn thấy dữ liệu này khi huấn luyện.
+- [Điểm nổi bật](#điểm-nổi-bật)
+- [Kết quả nhanh](#kết-quả-nhanh)
+- [Cách hoạt động](#cách-hoạt-động)
+- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
+- [Cài đặt và chạy](#cài-đặt-và-chạy)
+- [Tài liệu chi tiết](#tài-liệu-chi-tiết)
+- [Hướng phát triển](#hướng-phát-triển)
 
-### 2.2. Không gian Trạng thái (State Space / Features)
-Agent quan sát thị trường qua một vector trạng thái gồm **19 chiều (19 dimensions)**:
-- **16 Technical Indicators (Market Features):**
-  - *Xu hướng (Trend):* SMA 10, SMA 20, SMA 50.
-  - *Động lượng (Momentum):* RSI 14, MACD, MACD Signal, MACD Diff.
-  - *Biến động (Volatility):* Bollinger Bands (High, Mid, Low), ATR (Average True Range).
-  - *Khác:* Daily Returns, Log Returns, Volume SMA 20.
-- **3 Portfolio Features:** 
-  - `balance / initial_balance` (Tỷ lệ tiền mặt hiện có)
-  - `(shares * price) / initial_balance` (Giá trị cổ phiếu đang nắm giữ)
-  - `portfolio_value / initial_balance` (Tổng giá trị danh mục)
+## Điểm Nổi Bật
 
-**Chuẩn hóa (Normalization):** Tất cả 16 Market Features đều được chuẩn hóa (Z-score normalization) dựa trên `mean` và `std` của *riêng tập Train*. Các tham số này được lưu vào `weights/norm_params.json` để dùng cho lúc Test và trên Web App. Việc này cực kỳ quan trọng để chống rò rỉ dữ liệu (Data Leakage) và giúp Neural Network hội tụ nhanh hơn.
+- Mô hình hóa giao dịch thành bài toán **Markov Decision Process (MDP)** thay vì dự đoán giá trực tiếp.
+- Dùng dữ liệu OHLCV từ Yahoo Finance cho **SPY, QQQ, GLD**, trong đó SPY là tài sản huấn luyện chính.
+- Chia dữ liệu theo regime thị trường: train 2018-2021, validation 2022, test 2023-2024.
+- Không gian trạng thái gồm **19 chiều**: 16 đặc trưng thị trường và 3 đặc trưng danh mục.
+- Action liên tục trong khoảng `[-1, 1]`, biểu diễn tỷ trọng bán/mua.
+- Mô phỏng chi phí giao dịch `0.1%` và slippage `0.05%`.
+- Mạng Actor-Critic dùng chung cho ba agent, gồm **71,427 tham số**.
+- Có đánh giá theo test set, crisis stress test và multi-asset generalization.
 
-## 3. Môi trường Giao dịch (Trading Environment)
+## Kết Quả Nhanh
 
-Được kế thừa từ `gymnasium.Env` của OpenAI, môi trường mô phỏng chân thực thị trường tài chính:
-- **Action Space:** Không gian hành động liên tục `[-1.0, 1.0]`. 
-  - `action > 0.01`: **BUY**. Agent sẽ dùng tỷ lệ tiền tương ứng với `action` để mua cổ phiếu.
-  - `action < -0.01`: **SELL**. Agent sẽ bán ra tỷ lệ cổ phiếu đang nắm giữ tương ứng với `abs(action)`.
-  - Còn lại `[-0.01, 0.01]`: **HOLD** (Đứng ngoài hoặc giữ nguyên).
-- **Frictions (Chi phí ma sát):** Mô phỏng chi phí giao dịch (Transaction Cost) `0.1%` và trượt giá (Slippage) `0.05%`. Điều này ép Agent không được giao dịch "quá độ" (overtrading) vì mỗi lần trade đều mất phí.
-- **Reward (Phần thưởng):** Mặc định ở mỗi bước thời gian $t$, phần thưởng là tỷ suất lợi nhuận của danh mục: 
+Kết quả dưới đây lấy từ output notebook trên test set SPY, giai đoạn **2023-01-03 đến 2024-12-30**, vốn khởi tạo `$10,000`.
 
-$$
-r_t = \frac{\text{Portfolio Value}_{t} - \text{Portfolio Value}_{t-1}}{\text{Portfolio Value}_{t-1}}
-$$
+| Method      |    Final Value |      Return |     Sharpe |    Sortino |     Calmar |     Max DD |      CVaR-95 |
+| ----------- | -------------: | ----------: | ---------: | ---------: | ---------: | ---------: | -----------: |
+| PPO         | `$11,371.80` | `+13.72%` | `0.9706` | `1.1964` | `1.1366` | `-5.90%` | `-1.1034%` |
+| CVaR-PPO    | `$11,900.86` | `+19.01%` | `1.0729` | `1.4165` | `1.1057` | `-8.31%` | `-1.3178%` |
+| Sortino-PPO | `$11,553.35` | `+15.53%` | `0.9589` | `1.1930` | `1.0465` | `-7.23%` | `-1.2552%` |
+| Buy & Hold  | `$15,882.05` | `+58.82%` | `1.8844` | `2.9956` | `2.6325` | `-9.97%` | `-1.7422%` |
 
-## 4. Kiến trúc Mạng Neural (Actor-Critic Network)
+Trong bull market 2023-2024, Buy & Hold có lợi nhuận cao nhất. Tuy nhiên, stress test cho thấy CVaR-PPO phòng thủ tốt hơn trong giai đoạn COVID crash:
 
-Các Agent chia sẻ chung một kiến trúc mạng Neural (Actor-Critic):
-- **Shared Backbone:** Dữ liệu State (19 chiều) đi qua 2 lớp ẩn (Hidden Layers) Dense với 256 nốt, dùng hàm kích hoạt ReLU.
-- **Critic Head:** Nhận output từ backbone, đi qua 1 lớp Linear(256, 1) để dự đoán Value function (giá trị kỳ vọng của state hiện tại).
-- **Actor Head:** Dự đoán tham số của phân phối chuẩn (Normal Distribution):
-  - `actor_mean`: Lớp Linear(256, 1).
-  - `actor_log_std`: Tham số học được độc lập (Parameter).
-  - Lúc Train: Lấy mẫu (sample) hành động từ phân phối này để tăng cường Exploration. Lúc Test/Demo: Lấy trực tiếp `mean` (Deterministic) để đảm bảo kết quả ổn định. Sau cùng, áp dụng hàm `tanh` để ép giá trị hành động về khoảng `[-1, 1]`.
+| Period                |   PPO Return / MaxDD | CVaR-PPO Return / MaxDD | Sortino-PPO Return / MaxDD | Buy & Hold Return / MaxDD |
+| --------------------- | -------------------: | ----------------------: | -------------------------: | ------------------------: |
+| COVID crash 2020      | `-9.73% / -26.36%` |    `+1.44% / -14.97%` |       `-5.62% / -23.32%` |      `-5.56% / -33.72%` |
+| Bear market 2022      | `-6.92% / -13.66%` |    `-6.43% / -13.98%` |       `-8.64% / -15.18%` |     `-18.65% / -24.50%` |
+| Bull market 2023-2024 | `+20.39% / -5.78%` |    `+26.76% / -6.21%` |       `+14.33% / -6.56%` |      `+58.82% / -9.97%` |
 
-## 5. Chi tiết các Thuật toán & Phương pháp (Methodology)
+Diễn giải ngắn:
 
-Đây là trọng tâm khoa học của dự án. So sánh 3 phương pháp tối ưu chính sách:
+- **CVaR-PPO** là biến thể nổi bật nhất trong COVID crash, vừa có return dương vừa giảm drawdown sâu.
+- **PPO** có Max Drawdown tốt nhất trên test set 2023-2024, nhưng kém hơn CVaR-PPO trong crisis.
+- **Sortino-PPO** nằm giữa hai hướng: ổn định hơn PPO trong một số pha rủi ro, nhưng chưa vượt CVaR-PPO ở stress test.
+- **Buy & Hold** thắng mạnh trong bull market, đổi lại chịu tail risk và drawdown lớn hơn ở crisis.
 
-### 5.1. PPO (Proximal Policy Optimization) - Risk Neutral Baseline
-PPO là thuật toán tiêu chuẩn, tối đa hóa trực tiếp hàm lợi nhuận kỳ vọng, sử dụng kỹ thuật "Clipping" để chính sách không cập nhật quá mạnh trong 1 bước.
-- **Điểm mạnh:** Lợi nhuận rất cao trong thị trường uptrend, vì mô hình có xu hướng "All-in" (aggressive).
-- **Điểm yếu:** Nó bị mù rủi ro. Khi thị trường sập (như Bear Market 2022), nó chịu Max Drawdown rất nặng nề vì không có hàm loss nào ép nó phòng thủ.
+## Cách Hoạt Động
 
-### 5.2. CVaR-PPO (Tail Risk Constraint)
-Thêm thành phần rủi ro đuôi (Tail Risk) trực tiếp vào Hàm Loss của PPO. 
-- **Định nghĩa CVaR:** Conditional Value-at-Risk ở mức $\alpha=0.15$ tính toán trung bình của 15% lợi nhuận *tệ nhất* trong batch. 
-- **Toán học:** Hàm Loss của policy giờ đây được cộng thêm một khoản penalty: 
+Pipeline trong notebook gồm các bước chính:
 
-$$
-\text{Loss} = \text{Loss}_{PPO} + \lambda \times \max(0, -CVaR_{\alpha})
-$$
-  *(Lưu ý thuật toán thực tế đã chuẩn hóa return trong batch trước khi tính CVaR để tránh hàm loss phát triển đến vô hạn).*
-- **Cách thức hoạt động:** Trọng số $\lambda$ bắt đầu ở mức 0.15 và phân rã (decay) dần với hệ số 0.999. Hàm penalty này buộc Agent phải thay đổi trọng số neural network sao cho các tình huống "thua lỗ nặng" (nằm trong 15% đuôi) ít xảy ra hơn.
-- **Kết quả:** Max Drawdown được hạn chế tối đa trong giai đoạn khủng hoảng. Tuy nhiên, trong Bull market, do bị "sợ hãi" rủi ro đuôi, mô hình có thể e dè và sinh lời ít hơn PPO cơ bản.
+1. **Tải dữ liệu** bằng `yfinance` cho SPY, QQQ và GLD từ `2018-01-01` đến `2024-12-31`.
+2. **Tạo đặc trưng kỹ thuật**: SMA, RSI, MACD, Bollinger Bands, ATR, returns, log returns và volume SMA.
+3. **Chia dữ liệu theo regime**:
+   - Train: `2018-03-14` đến `2021-12-31`, gồm COVID crash.
+   - Validation: `2022-01-03` đến `2022-12-30`, thị trường gấu.
+   - Test: `2023-01-03` đến `2024-12-30`, phục hồi và bull run.
+4. **Huấn luyện agent** trong môi trường `gymnasium.Env` tự xây dựng.
+5. **Đánh giá** bằng Return, Sharpe, Sortino, Calmar, Max Drawdown, VaR-95, CVaR-95, volatility và win rate.
+6. **Lưu model** và tham số chuẩn hóa vào thư mục weights để phục vụ demo Django.
 
-### 5.3. Sortino-PPO (Downside Deviation Penalty)
-Thay vì phạt vào Hàm Loss như CVaR-PPO, Sortino-PPO phạt trực tiếp vào **Hàm Reward** trong Environment.
-- **Cơ chế:** Tính toán độ lệch chuẩn của các khoản lợi nhuận âm (downside volatility) trong khung thời gian 60 ngày gần nhất (rolling window).
-- **Toán học:** 
+## Cấu Trúc Thư Mục
 
-$$
-\text{Reward}_{Sortino} = r_t - \lambda \times (\sigma_{downside})^2
-$$
-  (Trong code, $\lambda = 0.2$ và mức phạt được cap (giới hạn) không quá 50% mức lợi nhuận tuyệt đối để không làm sụp đổ quá trình hội tụ học).
-- **Kết quả:** Thuật toán mang tính "cân bằng" hơn. Nó tối ưu hóa tỷ lệ Sortino (Lợi nhuận / Rủi ro sụt giảm). Nó tốt hơn PPO trong Down-trend và không quá "nhát gan" như CVaR-PPO trong Up-trend.
+```text
+.
+├── README.md
+├── risk_sensitive_trading.ipynb
+├── demo/
+│   ├── manage.py
+│   ├── requirements.txt
+│   ├── trading/
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── templates/
+│   ├── static/
+│   └── weights/
+│       ├── ppo_model.pth
+│       ├── cvar_ppo_model.pth
+│       ├── sortino_ppo_model.pth
+│       ├── norm_params.json
+│       ├── results.json
+│       └── test_results.csv
+└── references/
+    ├── README.md
+    ├── 01-data-and-features.md
+    ├── 02-trading-environment.md
+    ├── 03-methods.md
+    ├── 04-training-and-results.md
+    └── 05-django-demo.md
+```
 
-## 6. Quá trình Huấn luyện (Training Execution)
+## Cài Đặt Và Chạy
 
-- **Tham số Train:** Mô hình train trong 300 Episodes. Thu thập trải nghiệm và update network mỗi `256` steps (Update Interval). Learning rate của Actor-Critic là `2e-4`.
-- **CVaR-L2 Regularization:** Riêng CVaR-PPO dùng L2 regularization (`weight_decay=1e-5`) để tăng thêm độ ổn định cho trọng số khi đối mặt với tính chất phi tuyến của hàm loss CVaR.
+Yêu cầu khuyến nghị: Python 3.11+.
 
-## 7. Các Chỉ số Đo lường & Đánh giá (Evaluation Metrics)
+### Chạy Web Demo
 
-Để đánh giá một hệ thống giao dịch, chỉ xem Lợi nhuận (Return) là hoàn toàn thiếu sót. Dự án sử dụng hệ metric toàn diện:
-- **Total Return & Annualized Return:** Tỷ suất sinh lời tổng và tỷ suất sinh lời quy năm.
-- **Sharpe Ratio:** Lợi nhuận quy năm sinh ra trên mỗi đơn vị rủi ro tổng thể (Volatility).
-- **Sortino Ratio:** Lợi nhuận sinh ra trên mỗi đơn vị *rủi ro sụt giảm (Downside Volatility)*. Đây là thước đo tốt hơn cho nhà đầu tư vì Volatility dương (tăng giá) là điều tốt và không nên bị phạt.
-- **Max Drawdown (Max DD):** Mức sụt giảm sâu nhất từ đỉnh (Peak-to-Trough). Chỉ số sinh tử của các quỹ đầu tư.
-- **Calmar Ratio:** Tỷ lệ giữa Lợi nhuận quy năm / |Max Drawdown|.
-- **VaR-95% & CVaR-95%:** Đo lường tính toán rủi ro đuôi (Tail-Risk). Định lượng mức thua lỗ bình quân ở 5% số ngày tệ nhất.
-
-## 8. Cấu trúc Web App (Django) và System Flow
-
-Giao diện Web được xây dựng không chỉ để hiển thị tĩnh mà có backend tính toán trực tiếp:
-1. Khi user bấm Backtest/Signal trên Web, Django (ở `demo/trading/views.py`) lập tức dùng `yfinance` kéo dữ liệu thực từ thị trường.
-2. Tính toán lại 16 Technical Indicators theo logic khớp 100% với file Jupyter Notebook.
-3. Chuẩn hóa State array bằng `norm_params.json` đã lưu.
-4. Load trọng số `.pth` (từ `demo/weights/`) vào Actor-Critic model và thực thi bước nhảy (forward pass).
-5. Nếu là Backtest, hệ thống tạo Environment giả lập việc mua bán, trừ phí trượt giá (slippage) và gửi History array về cho Frontend vẽ biểu đồ bằng Javascript (Plotly).
-6. API phân tách kiến trúc rành mạch: `/api/realtime_predict/`, `/api/backtest/`, `/api/compare_models/`.
-
-## 9. Hướng dẫn Cài đặt & Chạy Code
-
-Project yêu cầu Python 3.8+ (khuyên dùng 3.11+). Các lệnh bên dưới dùng cho PowerShell / Terminal:
+Từ thư mục gốc của project:
 
 ```powershell
-# 1. Khởi tạo và kích hoạt môi trường ảo (Virtual Environment)
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-
-# 2. Cài đặt các thư viện lõi (Django, PyTorch, Pandas, yfinance, ta...)
 pip install -r demo\requirements.txt
-
-# 3. Chạy System Check của Django để đảm bảo model (.pth) được load đầy đủ
 python demo\manage.py check
-
-# 4. Chạy Server
 python demo\manage.py runserver
 ```
 
-Truy cập `http://127.0.0.1:8000/` trên trình duyệt để trải nghiệm Dashboard, xem Realtime Signal và chạy Backtest Comparison.
+Mở trình duyệt tại:
+
+```text
+http://127.0.0.1:8000/
+```
+
+Các chức năng chính của demo:
+
+- Dashboard tổng quan.
+- Realtime signal cho model đã train.
+- Backtest theo mã tài sản và khoảng thời gian.
+- Compare models giữa PPO, CVaR-PPO, Sortino-PPO và Buy & Hold.
+
+### Chạy Notebook
+
+Notebook được thiết kế để chạy trên Kaggle GPU, nhưng vẫn có thể chạy local nếu cài đủ thư viện:
+
+```powershell
+pip install yfinance ta gymnasium torch pandas numpy matplotlib plotly
+```
+
+Sau đó mở [risk_sensitive_trading.ipynb](risk_sensitive_trading.ipynb) bằng Jupyter, VS Code hoặc Kaggle Notebook và chạy lần lượt các cell.
+
+## Tài Liệu Chi Tiết
+
+Các phần phân tích sâu đã được tách vào thư mục [references](references):
+
+- [Tổng quan references](references/README.md)
+- [Dữ liệu và feature engineering](references/01-data-and-features.md)
+- [Môi trường giao dịch](references/02-trading-environment.md)
+- [Kiến trúc và thuật toán](references/03-methods.md)
+- [Huấn luyện, đánh giá và phân tích kết quả](references/04-training-and-results.md)
+- [Django demo và luồng hệ thống](references/05-django-demo.md)
+
+## Hướng Phát Triển
+
+- Huấn luyện dài hơn và kiểm tra nhiều seed để giảm phụ thuộc vào một lần chạy.
+- Thêm LSTM/Transformer để học phụ thuộc thời gian thay vì chỉ dùng state tại một ngày.
+- Mở rộng sang multi-asset portfolio thật sự với joint action space.
+- Bổ sung VIX, yield curve, macro và sentiment features.
+- Thêm walk-forward validation để đánh giá ổn định hơn trên nhiều giai đoạn thị trường.
