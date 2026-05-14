@@ -13,6 +13,23 @@ Báo cáo Word đã được chuyển sang Markdown để dễ đọc và tra c�
 
 > Dự án phục vụ mục đích nghiên cứu/học thuật. Đây không phải khuyến nghị đầu tư, không phải hệ thống giao dịch thật và không đảm bảo sinh lời ngoài thị trường.
 
+## Thông Tin Nhóm Thực Hiện
+
+Đề tài được thực hiện trong môn **Giao dịch định lượng**, thuộc Khoa Công nghệ Thông tin, Trường Đại học Công nghiệp TP. Hồ Chí Minh.
+
+| Thông tin                | Nội dung                                         |
+| ------------------------- | ------------------------------------------------- |
+| Tên đề tài            | Risk-Sensitive Reinforcement Learning for Trading |
+| Giảng viên hướng dẫn | TS. Bùi Thanh Hùng                              |
+| Lớp                      | 420301411301                                      |
+| Khóa                     | 19                                                |
+| Năm thực hiện          | 2026                                              |
+
+| Thành viên          |     MSSV | Đóng góp chính                                                                                                                                             |
+| --------------------- | -------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nguyễn Ngọc Lân    | 22635801 | Thu thập và tiền xử lý dữ liệu, trích xuất đặc trưng, chuẩn hóa, huấn luyện PPO/CVaR-PPO/Sortino-PPO, hỗ trợ Django demo và viết báo cáo |
+| Lê Huỳnh Tấn Đạt | 23634031 | Xây dựng logic tín hiệu BUY/SELL/HOLD, chỉ số đánh giá tài chính, kiểm thử backtest, hỗ trợ Django demo và viết báo cáo                     |
+
 ## Tóm Tắt Ý Tưởng
 
 Bài toán trading có ba đặc điểm khiến học tăng cường phù hợp:
@@ -23,12 +40,12 @@ Bài toán trading có ba đặc điểm khiến học tăng cường phù hợp
 
 Vì vậy project so sánh bốn chiến lược:
 
-| Chiến lược | Vai trò | Ý nghĩa |
-|---|---|---|
-| Buy & Hold | Benchmark thụ động | Mua từ đầu kỳ và giữ đến cuối kỳ, dùng làm chuẩn đối chiếu đơn giản |
-| PPO | Baseline RL | Tối ưu reward kỳ vọng, chưa có cơ chế phạt rủi ro riêng |
-| CVaR-PPO | Risk-sensitive RL | Thêm penalty cho nhóm return xấu nhất để chú ý tail risk |
-| Sortino-PPO | Risk-sensitive RL | Điều chỉnh reward theo downside deviation để phạt biến động bất lợi |
+| Chiến lược | Vai trò              | Ý nghĩa                                                                              |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------- |
+| Buy & Hold    | Benchmark thụ động | Mua từ đầu kỳ và giữ đến cuối kỳ, dùng làm chuẩn đối chiếu đơn giản |
+| PPO           | Baseline RL           | Tối ưu reward kỳ vọng, chưa có cơ chế phạt rủi ro riêng                     |
+| CVaR-PPO      | Risk-sensitive RL     | Thêm penalty cho nhóm return xấu nhất để chú ý tail risk                       |
+| Sortino-PPO   | Risk-sensitive RL     | Điều chỉnh reward theo downside deviation để phạt biến động bất lợi         |
 
 Điểm quan trọng không phải là “RL luôn thắng Buy & Hold”. Trên bull market 2023-2024, Buy & Hold thắng lợi nhuận tuyệt đối. Ý nghĩa của project là chỉ ra cách đọc **trade-off giữa lợi nhuận và rủi ro**, đặc biệt trong crisis period như COVID crash hoặc bear market 2022.
 
@@ -81,11 +98,11 @@ Môi trường mô phỏng một tài sản, vốn khởi tạo `$10,000`, trans
 
 Action là một số thực `a` trong `[-1, 1]`:
 
-| Action | Diễn giải |
-|---:|---|
-| `a > 0.01` | BUY, dùng tỷ lệ `a` của cash hiện có để mua |
-| `a < -0.01` | SELL, bán tỷ lệ `abs(a)` của số cổ phiếu đang giữ |
-| `-0.01 <= a <= 0.01` | HOLD |
+|                 Action | Diễn giải                                                  |
+| ---------------------: | ------------------------------------------------------------ |
+|           `a > 0.01` | BUY, dùng tỷ lệ `a` của cash hiện có để mua        |
+|          `a < -0.01` | SELL, bán tỷ lệ `abs(a)` của số cổ phiếu đang giữ |
+| `-0.01 <= a <= 0.01` | HOLD                                                         |
 
 Reward cơ sở:
 
@@ -153,12 +170,12 @@ Nguồn bảng dưới đây là output trong [risk_sensitive_trading.ipynb](ris
 
 Test set: SPY, `2023-01-03` đến `2024-12-30`, vốn khởi tạo `$10,000`.
 
-| Method | Final Value | Return | Sharpe | Sortino | Calmar | Max DD | CVaR-95 |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| PPO | `$11,371.80` | `+13.72%` | `0.9706` | `1.1964` | `1.1366` | `-5.90%` | `-1.1034%` |
-| CVaR-PPO | `$11,900.86` | `+19.01%` | `1.0729` | `1.4165` | `1.1057` | `-8.31%` | `-1.3178%` |
+| Method      |    Final Value |      Return |     Sharpe |    Sortino |     Calmar |     Max DD |      CVaR-95 |
+| ----------- | -------------: | ----------: | ---------: | ---------: | ---------: | ---------: | -----------: |
+| PPO         | `$11,371.80` | `+13.72%` | `0.9706` | `1.1964` | `1.1366` | `-5.90%` | `-1.1034%` |
+| CVaR-PPO    | `$11,900.86` | `+19.01%` | `1.0729` | `1.4165` | `1.1057` | `-8.31%` | `-1.3178%` |
 | Sortino-PPO | `$11,553.35` | `+15.53%` | `0.9589` | `1.1930` | `1.0465` | `-7.23%` | `-1.2552%` |
-| Buy & Hold | `$15,882.05` | `+58.82%` | `1.8844` | `2.9956` | `2.6325` | `-9.97%` | `-1.7422%` |
+| Buy & Hold  | `$15,882.05` | `+58.82%` | `1.8844` | `2.9956` | `2.6325` | `-9.97%` | `-1.7422%` |
 
 Diễn giải:
 
@@ -169,11 +186,11 @@ Diễn giải:
 
 Stress test trong notebook:
 
-| Period | PPO Return / MaxDD | CVaR-PPO Return / MaxDD | Sortino-PPO Return / MaxDD | Buy & Hold Return / MaxDD |
-|---|---:|---:|---:|---:|
-| COVID crash 2020 | `-9.73% / -26.36%` | `+1.44% / -14.97%` | `-5.62% / -23.32%` | `-5.56% / -33.72%` |
-| Bear market 2022 | `-6.92% / -13.66%` | `-6.43% / -13.98%` | `-8.64% / -15.18%` | `-18.65% / -24.50%` |
-| Bull market 2023-2024 | `+20.39% / -5.78%` | `+26.76% / -6.21%` | `+14.33% / -6.56%` | `+58.82% / -9.97%` |
+| Period                |   PPO Return / MaxDD | CVaR-PPO Return / MaxDD | Sortino-PPO Return / MaxDD | Buy & Hold Return / MaxDD |
+| --------------------- | -------------------: | ----------------------: | -------------------------: | ------------------------: |
+| COVID crash 2020      | `-9.73% / -26.36%` |    `+1.44% / -14.97%` |       `-5.62% / -23.32%` |      `-5.56% / -33.72%` |
+| Bear market 2022      | `-6.92% / -13.66%` |    `-6.43% / -13.98%` |       `-8.64% / -15.18%` |     `-18.65% / -24.50%` |
+| Bull market 2023-2024 | `+20.39% / -5.78%` |    `+26.76% / -6.21%` |       `+14.33% / -6.56%` |      `+58.82% / -9.97%` |
 
 Kết luận quan trọng: **CVaR-PPO thể hiện rõ giá trị trong COVID crash**, nơi tail-risk penalty giúp giảm drawdown sâu và thậm chí tạo return dương trong notebook run.
 
